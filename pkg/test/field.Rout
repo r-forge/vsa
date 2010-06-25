@@ -1,0 +1,92 @@
+> # From http://en.wikipedia.org/wiki/Field_(mathematics)
+> # Definition
+> #
+> # A field is a commutative ring (F, +, *) such that 0 does
+> # not equal 1 and all elements of F except 0 have a
+> # multiplicative inverse.
+> #
+> # Spelled out, this means that the following hold:
+> #
+> # Closure of F under + and *
+> #     For all a, b belonging to F, both a + b and a * b
+> #     belong to F (or more formally, + and * are binary
+> #     operations on F).
+>
+> library(vsa)
+> options(vsalen=5)
+> options(vsatype="realhrr")
+> options(vsanorm=TRUE)
+> set.seed(1)
+> a <- newVec()
+> b <- newVec()
+> c <- newVec()
+> one <- newVec("1")
+> zero <- newVec("0")
+> elts(a)
+[1] -0.32230088  0.09448167 -0.42991811  0.82074751  0.16952670
+> elts(zero - a)
+[1]  0.32230088 -0.09448167  0.42991811 -0.82074751 -0.16952670
+> elts(a ^ -1)
+[1] 0.2576517 0.7582449 1.2454609 0.2634962 0.4823315
+> elts(one)
+[1] 1 0 0 0 0
+> elts(zero)
+[1] 0 0 0 0 0
+> #
+> # Both + and * are associative
+> #     For all a, b, c in F, a + (b + c) = (a + b) + c and
+> #     a * (b * c) = (a * b) * c.
+> #
+> # Note: not equal with '==' because of numerical precision issues
+> a * (b * c) == (a * b) * c
+[1] FALSE
+> equiv(a * (b * c), (a * b) * c)
+[1] TRUE
+> (a * (b * c)) %cos% ((a * b) * c)
+simval: 1
+>
+> # Both + and * are commutative
+> #     For all a, b belonging to F, a + b = b + a and
+> #     a * b = b * a.
+> #
+> equiv(a * b, b * a)
+[1] TRUE
+>
+> # The operation * is distributive over the operation +
+> #     For all a, b, c, belonging to F,
+> #     a * (b + c) = (a * b) + (a * c).
+> #
+> equiv(a * (b + c) , (a * b) + (a * c))
+[1] TRUE
+>
+> # Existence of an additive identity
+> #     There exists an element 0 in F, such that for all a
+> #     belonging to F, a + 0 = a.
+> equiv(a + zero, a)
+[1] TRUE
+>
+> #
+> # Existence of a multiplicative identity
+> #     There exists an element 1 in F different from 0, such
+> #     that for all a belonging to F, a * 1 = a.
+> equiv(a * one, a)
+[1] TRUE
+>
+> #
+> # Existence of additive inverses
+> #     For every a belonging to F, there exists an element -a
+> #     in F, such that a + (-a) = 0.
+> # There is a bug in my equiv() function for comparing to zero!
+> equiv(a - a, zero)
+[1] FALSE
+> all(elts(a-a)==0)
+[1] TRUE
+>
+> #
+> # Existence of multiplicative inverses
+> #     For every a != 0 belonging to F, there exists an element
+> #     a^-1 in F, such that a * a^-1 = 1.
+>
+> equiv(a * a^-1, one)
+[1] TRUE
+>

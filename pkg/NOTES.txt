@@ -1,0 +1,42 @@
+Can define a %.% operator for dot-product -- consider giving
+the result a class that cannot be used in hrr arithmetic (to
+detect problems with precedence in parsing).
+
+vector store:
+
+list of vectors, with names (as names of list)
+
+enforce that all are same type and length
+
+create
+add
+remove
+compare
+
+library(vsa)
+a <- randVec()
+a
+b <- randVec()
+b
+dot(a, b)
+a %.% b
+elts(a)[1:10]
+x <- a * b
+(!a)
+(!a * x) %.% b # not what is expected, because "*" has higher precedence than "!"
+((!a) * x) %.% b
+(appinv(a) * x) %.% b
+(x / a) %.% b
+c <- randVec()
+d <- randVec()
+e <- randVec()
+f <- randVec()
+x <- norm(a * b + c * d + e * f)
+mem <- vsamem(a, b, c, d, e, f)
+cosmem(mem, a)
+dotmem(mem, x / b)
+cosmem(mem, x / b)
+cosmem(mem, x / c)
+cosmem(mem, x / f)
+bestmatch(mem, x / b, cos=T)
+bestmatch(mem, x / b, cos=F)

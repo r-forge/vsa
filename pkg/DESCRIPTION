@@ -1,0 +1,14 @@
+Package: vsa
+Version: 0.2
+Date: 2005-07-05
+Title: Vector Symbol Architectures for AI & CogSci
+Author: Tony Plate <tplate@acm.org>
+Maintainer: Tony Plate <tplate@acm.org>
+Depends: R (>= 1.8.0)
+Suggests: 
+Description: Provides a framework for implementing VSAs (Vector Symbolic
+  Architectures) for distributed representation of compositional
+  hierarchical structures.  Includes implementations of HRR (Holographic
+  Reduced Representation)
+License: GPL version 2 or newer
+URL: http://www.r-project.org, http://www.d-reps.org

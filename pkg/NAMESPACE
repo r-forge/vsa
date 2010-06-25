@@ -1,0 +1,44 @@
+# Generics that have methods for subclasses of vsa
+export(newVec, vsaprod, vsapower, appinv, dot, equiv, cosine, norm, mag, add, addnorm, vsascale, conformable, simval, scalar)
+# Functions for vsa objects (don't need specific methods for subclsses)
+export("%.%", "%==%", "%cos%", elts)
+# Functions for working with 'vsamem' objects
+export(vsamem, addmem, delmem, dotmem, cosmem, cleanup, bestmatch)
+
+S3method(print, vsa)
+S3method(print, vsamem)
+S3method(print, simval)
+S3method(Ops, vsa)
+S3method(elts, vsa)
+
+S3method(newVec, default)
+
+S3method(newVec, realhrr)
+S3method(vsaprod, realhrr)
+S3method(vsapower, realhrr)
+S3method(appinv, realhrr)
+S3method(dot, realhrr)
+S3method(equiv, realhrr)
+S3method(cosine, realhrr)
+S3method(norm, realhrr)
+S3method(mag, realhrr)
+S3method(add, realhrr)
+S3method(vsascale, realhrr)
+
+S3method(conformable, vsa)
+S3method(newVec, vsa)
+S3method(vsaprod, vsa)
+S3method(vsapower, vsa)
+S3method(appinv, vsa)
+S3method(dot, vsa)
+S3method(equiv, vsa)
+S3method(cosine, vsa)
+S3method(norm, vsa)
+S3method(mag, vsa)
+S3method(add, vsa)
+S3method(vsascale, vsa)
+S3method(conformable, vsa)
+
+S3method(scalar, default)
+S3method(scalar, simval)
+
