@@ -13,7 +13,7 @@
 \alias{vsascale.realhrr}
 \title{Implementation of Holographic Reduced Representations}
 \description{
-  
+
 Specific functions for creating and working with Holographic Reduced
 Representations.  Supplies functions for all standard algebraic VSA
 operations on vectors: multiplication, addition, superposition, scaling,
@@ -35,8 +35,8 @@ work in functional and operator form (e.g., \code{add(x, y)} and \code{x
 \method{norm}{realhrr}(e1)
 \method{dot}{realhrr}(e1, e2)
 \method{equiv}{realhrr}(e1, e2, tol)
-\method{cosine}{realhrr}(e1, e2)
-\method{mag}{realhrr}(e1)
+\method{cosine}{realhrr}(e1, e2, mag1, mag2)
+\method{mag}{realhrr}(e1, actual)
 \method{vsapower}{realhrr}(e1, e2)
 \method{vsascale}{realhrr}(e1, e2)
 \special{addnorm(...)}
@@ -77,6 +77,9 @@ values.} \code{what} is ignored if \code{elts} is supplied.}
   \item{vsatype}{ ignored for \code{newVec.realhrr} (as with all methods of \code{newVec}) }
   \item{e1}{ a \code{vsa} vector -- a subclass of \code{vsa} }
   \item{e2}{ a \code{vsa} vector for \code{vsaprod}, \code{dot}, \code{equiv}, \code{cosine}, and \code{add}, or a scalar (a numeric vector of length 1) for \code{vsapower} and \code{vsascale} }
+  \item{mag1,mag2}{ precomputed magnitudes for \code{e1} and \code{e2} }
+  \item{actual}{work with data values from this object (in this mode of
+    invocation \code{e1} is a template holding the class)}
   \item{method}{ computational method for convolution (\code{vsaprod}) }
   \item{tol}{ numerical tolerance for \code{equiv} }
   \item{...}{ addtional \code{vsa} vectors for \code{add}}

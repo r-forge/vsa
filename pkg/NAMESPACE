@@ -5,8 +5,17 @@ export("%.%", "%==%", "%cos%", elts)
 # Functions for working with 'vsamem' objects
 export(vsamem, addmem, delmem, dotmem, cosmem, cleanup, bestmatch)
 
+S3method(addmem, vsamat)
+S3method(addmem, default)
+
+S3method(cosmem, default)
+S3method(dotmem, vsalist)
+S3method(cleanup, default)
+S3method(bestmatch, default)
+
 S3method(print, vsa)
-S3method(print, vsamem)
+S3method(print, vsalist)
+S3method(print, vsamat)
 S3method(print, simval)
 S3method(Ops, vsa)
 S3method(elts, vsa)

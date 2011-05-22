@@ -114,7 +114,7 @@ equiv.vsa <- function(e1, e2, tol=1e-6) {
     return(sum((e1-e2)^2) < tol * max(sum(e1^2), sum(e2^2)))
 }
 
-cosine.vsa <- function(e1, e2) {
+cosine.vsa <- function(e1, e2, mag1=NULL, mag2=NULL) {
     if (class(e1)[1]!=class(e2)[1])
         stop("e1 and e2 must have same class")
     if (length(e1) != length(e2))
@@ -130,7 +130,7 @@ norm.vsa <- function(e1) {
     return(e1 / sqrt(sum(unclass(e1)^2)))
 }
 
-mag.vsa <- function(e1) {
+mag.vsa <- function(e1, actual=NULL) {
     stop(used.vsa.method("mag", class(e1)[1]))
     return(sqrt(sum(unclass(e1)^2)))
 }

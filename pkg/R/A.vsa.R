@@ -31,6 +31,8 @@ newVec.default <- function(what=c("rand", "I", "1", "0", "NA"),
 	stop("no vsatype specified -- must set options(vsatype=...)")
     if (length(vsatype)!=1)
 	stop("must set options('vsatype') to the name of a subclass of 'vsa'")
+    if (is.null(len))
+	stop("no len specified -- must set options(vsalen=...)")
     what <- match.arg(what)
     newVec(structure(what, class=vsatype), len, elts, norm)
 }
@@ -52,7 +54,7 @@ simval <- function(x) {
 #   !vsa: appinv
 
 Ops.vsa <-
-function (e1, e2 = NULL) 
+function (e1, e2 = NULL)
 {
     unary <- nargs() == 1
     lclass <- nchar(.Method[1]) > 0
@@ -131,13 +133,14 @@ equiv <- function(e1, e2, tol=1e-6) UseMethod("equiv")
 
 "%==%" <- function(e1, e2) equiv(e1, e2)
 
-cosine <- function(e1, e2) UseMethod("cosine")
+# can't use function cos() because it is not generic
+cosine <- function(e1, e2, mag1=NULL, mag2=NULL) UseMethod("cosine")
 
-"%cos%" <- cosine
+"%cos%" <- function(e1, e2) cosine(e1, e2)
 
 norm <- function(e1) UseMethod("norm")
 
-mag <- function(e1) UseMethod("mag")
+mag <- function(e1, actual=NULL) UseMethod("mag")
 
 scalar <- function(e1) UseMethod("scalar")
 
@@ -168,16 +171,12 @@ print.simval <- function(x, ...) {
 }
 
 print.vsa <- function(x, ..., values=FALSE) {
-    cat("'", class(x)[1], "' len=", length(x), " mag=",
+    cat(class(x)[1], "[", length(x), "] mag=",
         format(mag(x)), " cos(.,I)=", format(cosine(newVec(vsatype=class(x)[1], what="I", len=length(x)), x)),
         if (values) ":", "\n", sep="")
     if (values)
         print(unclass(x))
     return(invisible(x))
-}
-
-vsamem <- function(..., call=match.call()) {
-    return(addmem(..., call=call))
 }
 
 conformable <- function(x=NULL, list, stop.on.error=TRUE) UseMethod("conformable")
@@ -210,58 +209,246 @@ conformable.vsa <- function(x=NULL, list, stop.on.error=TRUE)
     return(TRUE)
 }
 
-addmem <- function(..., call=match.call()) {
+vsamem <- function(..., labels=NULL, type=c("list", "matrix"), call=match.call(expand.dots=FALSE)) {
+    type <- match.arg(type)
+    if (type=="list")
+        return(addmem.default(..., labels=labels, call=call))
+    else
+        return(addmem.vsamat(..., labels=labels, call=call))
+}
+
+addmem <- function(..., labels=NULL, call=match.call(expand.dots=FALSE)) UseMethod("addmem")
+
+addmem.vsamat <- function(..., labels=NULL, call=match.call(expand.dots=FALSE)) {
     items <- list(...)
-    call.names <- unlist(lapply(call[-1], function(x) if (is.name(x)) as.character(x) else ""), rec=FALSE)
-    if (length(call.names) != length(items))
-	stop("unexpected: mismatch on number of args and number of syntactic args?")
-    for (i in seq(along=items)) {
-        if (inherits(items[[i]], "vsa")) {
-            items[[i]] <- items[i]
-	    if ((is.null(names(items[[i]])) || is.na(names(items[[i]])) || names(items[[i]])=="") && call.names[i]!="")
-                names(items[[i]]) <- call.names[i]
-	} else if (!inherits(items[[i]], "vsamem")) {
-            stop("arguments must be either vsa's or vsamem's")
-	}
+    # Four modes of operation:
+    # (1) convert a matrix or named list of vsa's (first arg) to a vsamat
+    # (2) concatenate several vsamat's together,
+    # (3) add several vsa's to a vsalist,
+    # (4) create a new vsalist from vsa arguments
+    # In the cases (3) and (4), take labels from actual argument names.
+    if ((is.list(items[[1]]) || is.matrix(items[[1]])) && !inherits(items[[1]], "vsamat")) {
+        if (length(items) > 1)
+            stop("can only supply one arg when converting an ordinary matrix or list to a vsamat")
+        items <- items[[1]]
+        if (is.null(labels))
+            labels <- names(items)
+        if (is.list(items)) {
+            if (length(items)>=2)
+                conformable(items[[1]], items[-1])
+            example <- if (length(items)>0) items[[1]]
+            items <- matrix(unlist(items), ncol=length(items), dimnames=list(NULL, labels))
+            attr(items, "example") <- example
+        }
+    } else {
+        if (inherits(items[[1]], "vsa")) {
+            # args must be all vsa's
+            if (length(items)>=2)
+                conformable(items[[1]], items[-1])
+            if (!is.null(names(items))) {
+                labels <- names(items)
+            } else {
+                browser()
+                if (is.null(labels))
+                    labels <- sapply(call$..., function(x) if (is.name(x)) as.character(x) else "")
+                else
+                    if (length(labels) != length(items))
+                        stop("labels are wrong length for items")
+            }
+            example <- if (length(items)>0) items[[1]]
+            items <- matrix(unlist(items), ncol=length(items), dimnames=list(NULL, labels))
+            attr(items, "example") <- example
+        } else if (inherits(items[[1]], "vsamat")) {
+            if (length(items)==1) {
+                # nothing to add ...
+                items <- items[[1]]
+            } else if (inherits(items[[2]], "vsa")) {
+                # remaining args must be all vsa's, this will be checked in the call to conformable() below
+                if (is.null(names(items))) {
+                    if (is.null(labels))
+                        labels <- sapply(call$..., function(x) if (is.name(x)) as.character(x) else "")[-1]
+                    else
+                        if (length(labels) != (length(items)-1))
+                            stop("labels are wrong length for items")
+                    names(items)[seq(2, len=length(items)-1)] <- labels
+                }
+                example <- attr(items[[1]], "example")
+                if (is.null(example)) example <- items[[2]]
+                conformable(example, items[-1])
+                items <- do.call("cbind", items)
+                attr(items, "example") <- example
+            } else if (inherits(items[[2]], "vsamat")) {
+                # remaining args must be all vsamat's
+                if (any(!sapply(items, is, "vsamat")))
+                    stop("first two args are vsamat objects, but some others are not")
+                example <- NULL
+                for (i in seq(along=items)) {
+                    i.example <- attr(items[[i]], "example")
+                    if (!is.null(example) && !is.null(i.example))
+                        conformable(example, list(i.example))
+                    if (is.null(example))
+                        example <- i.example
+                }
+                items <- do.call("cbind", items)
+                attr(items, "example") <- example
+            } else {
+                stop("when first arg is vsalist, remaining ones must be all vsa or all vsalist")
+            }
+        } else {
+            stop("first arg must be vsa, vsamat or a list or matrix")
+        }
     }
-    names(items) <- NULL
-    items <- unlist(items, rec=FALSE)
+    if (ncol(items)>0) {
+        if (is.null(colnames(items)) || any(colnames(items)=="") || any(duplicated(colnames(items))))
+            stop("all items to store must have unique non-empty names")
+    }
+    class(items) <- c("vsamat", "vsamem")
+    if (ncol(items)>0 && !is.null(example <- attr(items, "example")))
+        attr(items, "mag") <- apply(unclass(items), 2, function(x) mag(example, actual=x))
+    return(items)
+}
+
+addmem.default <- function(..., labels=NULL, call=match.call(expand.dots=FALSE)) {
+    items <- list(...)
+    # Four modes of operation:
+    # (1) convert a named list of vsa's (first arg) to a vsamem (i.e., just add the class)
+    # (2) concatenate several vsalist's together,
+    # (3) add several vsa's to a vsalist,
+    # (4) create a new vsalist from vsas arguments
+    # In the cases (3) and (4), take labels from actual argument names.
+    if (is.list(items[[1]]) & !inherits(items[[1]], "vsalist")) {
+        if (length(items) > 1)
+            stop("can only supply one arg when converting an ordinary list to a vsalist")
+        items <- items[[1]]
+        if (is.null(names(items)))
+            names(items) <- labels
+    } else {
+        if (inherits(items[[1]], "vsa")) {
+            # args must be all vsa's, this will be checked in the call to conformable() below
+            if (is.null(names(items))) {
+                if (is.null(labels))
+                    labels <- sapply(call$..., function(x) if (is.name(x)) as.character(x) else "")
+                else
+                    if (length(labels) != length(items))
+                        stop("labels are wrong length for items")
+                names(items) <- labels
+            }
+        } else if (inherits(items[[1]], "vsalist")) {
+            if (length(items)==1) {
+                # nothing to add ...
+                items <- items[[1]]
+            } else if (inherits(items[[2]], "vsa")) {
+                # remaining args must be all vsa's, this will be checked in the call to conformable() below
+                if (is.null(names(items))) {
+                    if (is.null(labels))
+                        labels <- sapply(call$..., function(x) if (is.name(x)) as.character(x) else "")[-1]
+                    else
+                        if (length(labels) != (length(items)-1))
+                            stop("labels are wrong length for items")
+                    names(items)[seq(2, len=length(items)-1)] <- labels
+                }
+                items <- c(items[[1]], items[-1])
+            } else if (inherits(items[[2]], "vsalist")) {
+                # remaining args must be all vsalist's
+                if (any(!sapply(items, is, "vsalist")))
+                    stop("first two args are vsalist objects, but some others are not")
+                items <- unlist(items, recursive=FALSE)
+            } else {
+                stop("when first arg is vsalist, remaining ones must be all vsa or all vsalist")
+            }
+        } else {
+            stop("first arg must be vsa, vsalist or a list")
+        }
+    }
     if (length(items)>0) {
         if (is.null(names(items)) || any(names(items)=="") || any(duplicated(names(items))))
             stop("all items to store must have unique non-empty names")
         if (length(items) > 1)
             conformable(items[[1]], items[-1])
     }
-    class(items) <- "vsamem"
+    class(items) <- c("vsalist", "vsamem")
+    if (length(items)>0)
+        attr(items, "mag") <- lapply(unclass(items), mag)
     return(items)
 }
+
+memlabels <- function(mem) UseMethod("memlabels")
+
+memlabels.vsalist <- function(mem) return(names(mem))
+memlabels.vsamat <- function(mem) return(colnames(mem))
+
+memsize <- function(mem) UseMethod("memsize")
+
+memsize.vsalist <- function(mem) return(length(mem))
+memsize.vsamat <- function(mem) return(ncol(mem))
 
 delmem <- function(mem, items) {
     # 'items' is a vector of the names of items to delete from the memory
     stop("not yet implemented")
 }
 
-dotmem <- function(mem, x, cos=FALSE) {
+dotmem <- function(mem, x, cos=FALSE) UseMethod("dotmem")
+
+dotmem.vsalist <- function(mem, x, cos=FALSE) {
     if (!inherits(x, "vsa"))
         stop("x must be a vsa")
-    if (!inherits(mem, "vsamem"))
-        stop("mem must be a vsamem")
-    res <- numeric(length(mem))
-    names(res) <- names(mem)
+    if (!inherits(mem, "vsalist"))
+        stop("mem must be a vsalist")
+    xmag <- mag(x)
     if (cos)
-        x <- norm(x)
-    for (i in seq(along=mem))
-        res[i] <- dot(if (cos) norm(mem[[i]]) else mem[[i]], x)
+        res <- sapply(unclass(mem), cosine, e1=x, mag1=xmag)
+    else
+        res <- sapply(unclass(mem), dot, e1=x)
+    names(res) <- memlabels(mem)
     res
 }
 
-cosmem <- function(mem, x) {
-    dotmem(mem, x, cos=TRUE)
+dotmem.vsamat <- function(mem, x, cos=FALSE) {
+    if (!inherits(x, "vsa"))
+        stop("x must be a vsa")
+    if (!inherits(mem, "vsamat"))
+        stop("mem must be a vsamat")
+    example <- attr(mem, "example")
+    if (!is.null(example))
+        conformable(example, list(x))
+    if (memsize(mem)==0)
+        return(numeric(0))
+    if (is.null(example))
+        stop("non-empty vsamat memory contains no example vector")
+    return(dotmem.vsamat.compute(x, mem, cos=cos, memlabels(mem)))
 }
 
-cleanup <- function(mem, x, cos=TRUE, threshold=NA) {
+dotmem.vsamat.compute <- function(x, mem, cos, labels) UseMethod("dotmem.vsamat.compute")
+
+# The default will work, but a more efficent version can be supplied that
+# dispatches off the vsa subclass (i.e., the type of the vsa vector).
+# The method can safely assume the columns of mem conform with x.
+dotmem.vsamat.compute.default <- function(x, mem, cos, labels) {
+    res <- numeric(memsize(mem))
+    names(res) <- labels
+    xmag <- mag(x)
+    y <- x
+    for (i in seq(ncol(mem))) {
+        y[] <- mem[,i]
+        if (cos)
+            res[i] <- cosine(x, y, mag1=xmag)
+        else
+            res[i] <- dot(x, y)
+    }
+    res
+}
+
+cosmem <- function(mem, x) UseMethod("cosmem")
+
+# the default should work in most cases
+cosmem.default <- function(mem, x) dotmem(mem, x, cos=TRUE)
+
+cleanup <- function(mem, x, cos=TRUE, threshold=NA) UseMethod("cleanup")
+
+# the default should work in most cases
+cleanup.default <- function(mem, x, cos=TRUE, threshold=NA) {
     if (length(mem))
-        best <- bestmatch(mem, x, cos=cos, num=TRUE)
+        best <- bestmatch(mem, x, cos=cos, n=1, num=TRUE)
     if (length(mem)==0 || (!is.na(threshold) && attr(best, "scores")<threshold))
         res <- newVec(vsatype=class(x)[1], what="NA", len=length(x))
     else
@@ -269,13 +456,10 @@ cleanup <- function(mem, x, cos=TRUE, threshold=NA) {
     res
 }
 
-print.vsamem <- function(x, ...) {
-    vsaclass <- if (length(x)) class(x[[1]]) else "vsas"
-    cat("Memory containing ", length(x), " ", vsaclass, "'s\n", sep="")
-    invisible(x)
-}
+bestmatch <- function(mem, x, cos=TRUE, n=1, num=FALSE) UseMethod("bestmatch")
 
-bestmatch <- function(mem, x, cos=TRUE, n=1, num=FALSE) {
+# the default should work in most cases
+bestmatch.default <- function(mem, x, cos=TRUE, n=1, num=FALSE) {
     scores <- dotmem(mem, x, cos=cos)
     best <- order(-scores)[seq(len=min(n, length(mem)))]
     scores <- scores[best]
@@ -286,18 +470,40 @@ bestmatch <- function(mem, x, cos=TRUE, n=1, num=FALSE) {
     }
 }
 
+print.vsalist <- function(x, ...) {
+    vsaclass <- if (length(x)) class(x[[1]]) else "vsa"
+    len <- if (length(x)) length(x[[1]]) else "?"
+    m <- memlabels(x)
+    n <- memsize(x)
+    cat("List memory containing ", n, " ", vsaclass[1], "[", len, "]: ",
+        paste(m[seq(1, len=min(length(m), 3))], collapse=", "),
+        if (length(m)>3) " ...", "\n", sep="")
+    invisible(x)
+}
+
+print.vsamat <- function(x, ...) {
+    vsaclass <- if (!is.null(attr(x, "example"))) class(attr(x, "example")) else "vsa"
+    len <- nrow(x)
+    m <- memlabels(x)
+    n <- memsize(x)
+    cat("Matrix memory containing ", n, " ", vsaclass[1], "[", len, "]: ",
+        paste(m[seq(1, len=min(length(m), 3))], collapse=", "),
+        if (length(m)>3) " ...", "\n", sep="")
+    invisible(x)
+}
+
 # Ops.simval do standard arithmetic on numbers, but check that we're not trying to do something odd to a simval (which can happen if the user doesn't understand the operator precedence & misspecifies and expression -- this helps to catch such situations)
 
 #   simval * simval: not allowed (?)
-#   simval * scalar: 
-#   simval / scalar: 
-#   simval + simval: 
-#   simval - simval: 
+#   simval * scalar:
+#   simval / scalar:
+#   simval + simval:
+#   simval - simval:
 #   simval ^ scalar: power
 #   !simval: not allowed (common operator precedence error: !a %.% b is parsed as !(a %.% b), which returns logical, which is almost certainly not what was intended)
 
 Ops.simval <-
-function (e1, e2 = NULL) 
+function (e1, e2 = NULL)
 {
     unary <- nargs() == 1
     lclass <- nchar(.Method[1]) > 0

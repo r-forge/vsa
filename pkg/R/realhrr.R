@@ -89,22 +89,30 @@ equiv.realhrr <- function(e1, e2, tol=1e-6) {
     return(sum((e1-e2)^2) < tol * max(sum(e1^2), sum(e2^2)))
 }
 
-cosine.realhrr <- function(e1, e2) {
+cosine.realhrr <- function(e1, e2, mag1=NULL, mag2=NULL) {
     if (class(e1)[1]!=class(e2)[1])
         stop("e1 and e2 must have same class")
     if (length(e1) != length(e2))
         stop("e1 and e2 must have the same length")
     e1 <- unclass(e1)
     e2 <- unclass(e2)
-    structure(sum(e1 * e2)/sqrt(sum(e1^2)*sum(e2^2)), class="simval")
+    if (is.null(mag1))
+        mag1 <- sqrt(sum(e1^2))
+    if (is.null(mag2))
+        mag2 <- sqrt(sum(e2^2))
+    structure(sum(e1 * e2)/(mag1 * mag2), class="simval")
 }
 
 norm.realhrr <- function(e1) {
     return(e1 / sqrt(sum(unclass(e1)^2)))
 }
 
-mag.realhrr <- function(e1) {
-    return(sqrt(sum(unclass(e1)^2)))
+mag.realhrr <- function(e1, actual=NULL) {
+    # supply actual in the cases where e1 is a template/class-holder
+    if (is.null(actual))
+        return(sqrt(sum(unclass(e1)^2)))
+    else
+        return(sqrt(sum(unclass(actual)^2)))
 }
 
 add.realhrr <- function(e1, ...) {
@@ -123,4 +131,23 @@ vsascale.realhrr <- function(e1, e2) {
 	stop("e2 must be a scalar")
     e1[] <- elts(e1) * as.vector(e2)
     e1
+}
+
+# The default will work, but a more efficent version can be supplied that
+# dispatches off the vsa subclass (i.e., the type of the vsa vector).
+# The method can safely assume the columns of mem conform with x.
+dotmem.vsamat.compute.realhrr <- function(x, mem, cos, labels) {
+    xmag <- mag(x)
+    if (xmag==0)
+        xmag <- 1
+    res <- drop(crossprod(x, unclass(mem)))
+    if (cos) {
+        memmag <- attr(mem, "mag")
+        if (length(memmag) != ncol(mem))
+            memmag <- sqrt(colSums(unclass(mem)^2, na.rm=T))
+        if (any(i <- memmag==0))
+            memmag[i] <- 1
+        res <- res / (xmag * memmag)
+    }
+    res
 }

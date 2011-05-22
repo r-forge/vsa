@@ -40,9 +40,9 @@ dot(e1, e2)
 e1 \%.\% e2
 equiv(e1, e2, tol)
 e1 \%==\% e2
-cosine(e1, e2)
+cosine(e1, e2, mag1=NULL, mag2=NULL)
 e1 \%cos\% e2
-mag(e1)
+mag(e1, actual=NULL)
 vsapower(e1, e2)
 vsascale(e1, e2)
 \special{e1 * e2}
@@ -61,6 +61,9 @@ vsascale(e1, e2)
   \item{e2}{ a \code{vsa} vector for \code{vsaprod}, \code{dot}, \code{equiv}, \code{cosine}, and \code{add}, or a scalar (a numeric vector of length 1) for \code{vsapower} and \code{vsascale} }
   \item{method}{ computational method for convolution (\code{vsaprod}) }
   \item{tol}{ numerical tolerance for \code{equiv} }
+  \item{mag1,mag2}{ precomputed magnitudes for \code{e1} and \code{e2} }
+  \item{actual}{work with data values from this object (in this mode of
+    invocation \code{e1} is a template holding the class)}
   \item{...}{ addtional \code{vsa} vectors for \code{add} or  \code{addnorm} }
 }
 \details{

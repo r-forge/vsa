@@ -18,8 +18,8 @@ VSA vectors against the vectors in a memory.
 
 }
 \usage{
-vsamem(..., call = match.call())
-addmem(..., call = match.call())
+vsamem(..., labels = NULL, type = c("list", "matrix"), call = match.call(expand.dots = FALSE))
+addmem(..., labels = NULL, call = match.call(expand.dots = FALSE))
 delmem(mem, items)
 dotmem(mem, x, cos=FALSE)
 cosmem(mem, x)
@@ -32,8 +32,11 @@ conformable(x=NULL, list, stop.on.error=TRUE)
   \item{\dots}{ A collection of conformable VSA vectors (i.e., of same
     type and length) to be stored in a VSA memory, or VSA memory objects
     containing such conformable VSA vectors.}
-  \item{call}{ The construction call to be recorded with the memory }
+  \item{call}{ The actual dot args, from which labels can be deduced if
+    not otherwise supplied. }
   \item{mem}{ A VSA memory object }
+  \item{labels}{ A character vector containing names of the items to use}
+  \item{type}{ Type of memory to create }
   \item{items}{ A character vector containing names of the items to
     delete from the moery}
   \item{x}{ A VSA vector }
@@ -43,7 +46,7 @@ conformable(x=NULL, list, stop.on.error=TRUE)
     is the unscaled dot-product similarity measure.}
   \item{threshold}{ A scalar value }
   \item{n}{ An integer }
-  \item{num}{ \code{TRUE} or \code{FALSE}.  If \code{TRUE}, 
+  \item{num}{ \code{TRUE} or \code{FALSE}.  If \code{TRUE},
     return numeric indices of the vectors in memory.  If \code{FALSE}
     return names of the vectors in memory. }
   \item{stop.on.error}{ Should the function stop with an error if it finds a problem, or return
@@ -52,6 +55,7 @@ conformable(x=NULL, list, stop.on.error=TRUE)
 \details{
   The functions \code{vsamem()}, \code{addmem()}, and \code{delmem()}
   return the created or modified VSA memory as their value.
+  VSA memories come in two flavors: list and matrix.
 
 }
 \value{
