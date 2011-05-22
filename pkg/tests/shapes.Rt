@@ -1,0 +1,228 @@
+> # This code reproduces the experiments described
+> # in Chapter 6 of the book "Holographic Reduced
+> # Representations" (the geometric shapes example).
+> # It reproduces the results in Table 16 on p179 of
+> # that book. (Note that results in the table vary
+> # by the random seed used, but the results generated
+> # here should usually be with in ranges in the
+> # square brackets.)
+> 
+> options(vsatype="realhrr")
+> options(vsanorm=TRUE)
+> options(vsalen=1024)
+> set.seed(0)
+> 
+> # weights for different components of HRRs
+> w_rpl <- 1 # relation-predicate label
+> w_rpb <- 1 # relation-predicate binding
+> w_cow <- 1 # object weight in chunk
+> w_cpw <- 1 # relation-predicate weight in chunk
+> 
+> # objects.ca
+> # Experiment from Markman, Gentner, & Wisniewski, draft
+> # Stimuli from Figure 2, discussed p12
+> 
+> horizontal <- newVec()
+> leftR <- newVec()
+> rightR <- newVec()
+> 
+> vertical <- newVec()
+> aboveR <- newVec()
+> belowR <- newVec()
+> 
+> circle <- newVec()
+> square <- newVec()
+> triangle <- newVec()
+> star <- newVec()
+> small <- newVec()
+> large <- newVec()
+> 
+> # shapes.ca
+> large_circle <- addnorm(circle, large)
+> large_square <- addnorm(square, large)
+> large_triangle <- addnorm(triangle, large)
+> large_star <- addnorm(star, large)
+> small_circle <- addnorm(circle, small)
+> small_square <- addnorm(square, small)
+> small_triangle <- addnorm(triangle, small)
+> small_star <- addnorm(star, small)
+> 
+> # lcalq : large circle above large square
+> lcalq_rf <- w_rpb * aboveR * large_circle + w_rpb * belowR * large_square
+> lcalq <- addnorm(w_rpl * vertical,
++                  w_cow * addnorm(large_circle, large_square),
++                  w_cpw * lcalq_rf)
+> 
+> # lcalt : large circle above large triangle
+> lcalt_rf <- w_rpb * aboveR * large_circle + w_rpb * belowR * large_triangle
+> lcalt <- addnorm(w_rpl * vertical,
++                  w_cow * addnorm(large_circle, large_triangle),
++                  w_cpw * lcalt_rf)
+> 
+> # lcnlt : large circle nextto large triangle
+> lcnlt_rf <- w_rpb * leftR * large_circle + w_rpb * rightR * large_triangle
+> lcnlt <- addnorm(w_rpl * horizontal,
++                  w_cow * addnorm(large_circle, large_triangle),
++                  w_cpw * lcnlt_rf)
+> 
+> # lqalc : large square above large circle
+> lqalc_rf <- w_rpb * aboveR * large_square + w_rpb * belowR * large_circle
+> lqalc <- addnorm(w_rpl * vertical,
++                  w_cow * addnorm(large_square, large_circle),
++                  w_cpw * lqalc_rf)
+> 
+> # lqnls : large square nextto large star
+> lqnls_rf <- w_rpb * leftR * large_square + w_rpb * rightR * large_star
+> lqnls <- addnorm(w_rpl * horizontal,
++                  w_cow * addnorm(large_square, large_star),
++                  w_cpw * lqnls_rf)
+> 
+> # lsalq : large star above large square
+> lsalq_rf <- w_rpb * aboveR * large_star + w_rpb * belowR * large_square
+> lsalq <- addnorm(w_rpl * vertical,
++                  w_cow * addnorm(large_star, large_square),
++                  w_cpw * lsalq_rf)
+> 
+> # lsalt : large star above large triangle
+> lsalt_rf <- w_rpb * aboveR * large_star + w_rpb * belowR * large_triangle
+> lsalt <- addnorm(w_rpl * vertical,
++                  w_cow * addnorm(large_star, large_triangle),
++                  w_cpw * lsalt_rf)
+> 
+> # lsasq : large star above small square
+> lsasq_rf <- w_rpb * aboveR * large_star + w_rpb * belowR * small_square
+> lsasq <- addnorm(w_rpl * vertical,
++                  w_cow * addnorm(large_star, small_square),
++                  w_cpw * lsasq_rf)
+> 
+> # lsnlq : large star nextto large square
+> lsnlq_rf <- w_rpb * leftR * large_star + w_rpb * rightR * large_square
+> lsnlq <- addnorm(w_rpl * horizontal,
++                  w_cow * addnorm(large_star, large_square),
++                  w_cpw * lsnlq_rf)
+> 
+> # ltalc : large triangle above large circle
+> ltalc_rf <- w_rpb * aboveR * large_triangle + w_rpb * belowR * large_circle
+> ltalc <- addnorm(w_rpl * vertical,
++                  w_cow * addnorm(large_triangle, large_circle),
++                  w_cpw * ltalc_rf)
+> 
+> # ltals : large triangle above large star
+> ltals_rf <- w_rpb * aboveR * large_triangle + w_rpb * belowR * large_star
+> ltals <- addnorm(w_rpl * vertical,
++                  w_cow * addnorm(large_triangle, large_star),
++                  w_cpw * ltals_rf)
+> 
+> # ltasc : large triangle above small circle
+> ltasc_rf <- w_rpb * aboveR * large_triangle + w_rpb * belowR * small_circle
+> ltasc <- addnorm(w_rpl * vertical,
++                  w_cow * addnorm(large_triangle, small_circle),
++                  w_cpw * ltasc_rf)
+> 
+> # ltnlc : large triangle nextto large circle
+> ltnlc_rf <- w_rpb * leftR * large_triangle + w_rpb * rightR * large_circle
+> ltnlc <- addnorm(w_rpl * horizontal,
++                  w_cow * addnorm(large_triangle, large_circle),
++                  w_cpw * ltnlc_rf)
+> 
+> # ssalq : small star above large square
+> ssalq_rf <- w_rpb * aboveR * small_star + w_rpb * belowR * large_square
+> ssalq <- addnorm(w_rpl * vertical,
++                  w_cow * addnorm(small_star, large_square),
++                  w_cpw * ssalq_rf)
+> 
+> # stalc : small triangle above large circle
+> stalc_rf <- w_rpb * aboveR * small_triangle + w_rpb * belowR * large_circle
+> stalc <- addnorm(w_rpl * vertical,
++                  w_cow * addnorm(small_triangle, large_circle),
++                  w_cpw * stalc_rf)
+> 
+> relMem <- vsamem(vertical, horizontal)
+> roleMem <- vsamem(leftR, rightR, aboveR, belowR)
+> sizeMem <- vsamem(small, large)
+> shapeMem <- vsamem(circle, square, triangle, star,
++                    large_circle, large_square, large_triangle, large_star,
++                    small_circle, small_square, small_triangle, small_star)
+> 
+> arrMem <- vsamem(ltnlc, lqnls, lcalt, lcnlt, lsalq, lsnlq,
++                  ltalc, lqalc, lcalq, ltals, lsalt, stalc,
++                  ltasc, ssalq, lsasq)
+> 
+> # res1.ca
+> 
+> options(digits=3)
+> makeTable16 <- function() {
++     x <- ltalc
++     cat("Comparing with ltalc", "\n")
++     C1A <- x %.% ltnlc
++     C1B <- x %.% lqnls
++     cat("1  ltnlc: ", format(C1A, wid=5),
++         "    lqnls: ", format(C1B, wid=5), "\n")
++     C2aA <- x %.% lcalt
++     C2aB <- x %.% lcnlt
++     cat("2a lcalt: ", format(C2aA, wid=5),
++         "    lcnlt: ", format(C2aB, wid=5), "\n")
++     C2bA <- x %.% lsalq
++     C2bB <- x %.% lsnlq
++     cat("2b lsalq: ", format(C2bA, wid=5),
++         "    lsnlq: ", format(C2bB, wid=5), "\n")
++     C3A <- x %.% ltalc
++     C3B <- x %.% lcalt
++     cat("3  ltalc: ", format(C3A, wid=5),
++         "    lcalt: ", format(C3B, wid=5), "\n")
++     C4aA <- x %.% lqalc
++     C4aB <- x %.% lcalq
++     cat("4a lqalc: ", format(C4aA, wid=5),
++         "    lcalq: ", format(C4aB, wid=5), "\n")
++     C4bA <- x %.% ltals
++     C4bB <- x %.% lsalt
++     cat("4b ltals: ", format(C4bA, wid=5),
++         "    lsalt: ", format(C4bB, wid=5), "\n")
++     x <- stalc
++     cat("Comparing with stalc", "\n")
++     C5A <- x %.% stalc
++     C5B <- x %.% ltasc
++     cat("5  stalc: ", format(C5A, wid=5),
++         "    ltasc: ", format(C5B, wid=5), "\n")
++     C6A <- x %.% ssalq
++     C6B <- x %.% lsasq
++     cat("6  ssalq: ", format(C6A, wid=5),
++         "    lsasq: ", format(C6B, wid=5), "\n")
++ }
+> makeTable16()
+Comparing with ltalc 
+1  ltnlc:  0.247     lqnls:   0.19 
+2a lcalt:  0.778     lcnlt:  0.275 
+2b lsalq:  0.658     lsnlq:  0.192 
+3  ltalc:      1     lcalt:  0.778 
+4a lqalc:  0.831     lcalq:  0.711 
+4b ltals:  0.823     lsalt:  0.733 
+Comparing with stalc 
+5  stalc:      1     ltasc:  0.738 
+6  ssalq:  0.603     lsasq:  0.321 
+> 
+> # most similar arrangments to "large triangle above large circle"
+> bestmatch(arrMem, ltalc, n=3)
+ltalc lqalc ltals 
+1.000 0.831 0.823 
+> # the relation in "large triangle above large circle"
+> bestmatch(relMem, ltalc, n=3)
+  vertical horizontal 
+   0.49484   -0.00191 
+> # the object in role 'above' in "large triangle above large circle"
+> bestmatch(shapeMem, ltalc * appinv(aboveR), n=3)
+large_triangle       triangle   large_circle 
+         0.472          0.312          0.282 
+> # size of object 'above' in "large triangle above large circle"
+> bestmatch(sizeMem, ltalc * appinv(aboveR), n=3)
+ large  small 
+0.3682 0.0067 
+> # the object in role 'below' in "large triangle above large circle"
+> bestmatch(shapeMem, ltalc * appinv(belowR), n=3)
+  large_circle         circle large_triangle 
+         0.468          0.315          0.261 
+> # what size is the object 'below' in "large triangle above large circle"
+> bestmatch(sizeMem, ltalc * appinv(belowR), n=3)
+  large   small 
+ 0.3359 -0.0431 
+> 
