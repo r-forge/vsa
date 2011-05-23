@@ -387,9 +387,9 @@ delmem <- function(mem, items) {
     stop("not yet implemented")
 }
 
-dotmem <- function(mem, x, cos=FALSE) UseMethod("dotmem")
+dotmem <- function(mem, x, ..., cos=FALSE) UseMethod("dotmem")
 
-dotmem.vsalist <- function(mem, x, cos=FALSE) {
+dotmem.vsalist <- function(mem, x, ..., cos=FALSE) {
     if (!inherits(x, "vsa"))
         stop("x must be a vsa")
     if (!inherits(mem, "vsalist"))
@@ -403,7 +403,7 @@ dotmem.vsalist <- function(mem, x, cos=FALSE) {
     res
 }
 
-dotmem.vsamat <- function(mem, x, cos=FALSE) {
+dotmem.vsamat <- function(mem, x, ..., cos=FALSE) {
     if (!inherits(x, "vsa"))
         stop("x must be a vsa")
     if (!inherits(mem, "vsamat"))
@@ -415,17 +415,17 @@ dotmem.vsamat <- function(mem, x, cos=FALSE) {
         return(numeric(0))
     if (is.null(example))
         stop("non-empty vsamat memory contains no example vector")
-    return(dotmem.vsamat.compute(x, mem, cos=cos, memlabels(mem)))
+    return(dotmem.vsamat.compute(x, mem, ..., cos=cos))
 }
 
-dotmem.vsamat.compute <- function(x, mem, cos, labels) UseMethod("dotmem.vsamat.compute")
+dotmem.vsamat.compute <- function(x, mem, ..., cos) UseMethod("dotmem.vsamat.compute")
 
 # The default will work, but a more efficent version can be supplied that
 # dispatches off the vsa subclass (i.e., the type of the vsa vector).
 # The method can safely assume the columns of mem conform with x.
-dotmem.vsamat.compute.default <- function(x, mem, cos, labels) {
+dotmem.vsamat.compute.default <- function(x, mem, cos, ...) {
     res <- numeric(memsize(mem))
-    names(res) <- labels
+    names(res) <- colnames(mem)
     xmag <- mag(x)
     y <- x
     for (i in seq(ncol(mem))) {

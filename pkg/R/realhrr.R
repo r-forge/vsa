@@ -136,11 +136,59 @@ vsascale.realhrr <- function(e1, e2) {
 # The default will work, but a more efficent version can be supplied that
 # dispatches off the vsa subclass (i.e., the type of the vsa vector).
 # The method can safely assume the columns of mem conform with x.
-dotmem.vsamat.compute.realhrr <- function(x, mem, cos, labels) {
+dotmem.vsamat.compute.realhrr <- function(x, mem, ..., cos=FALSE, method=c("fast", "R"), usenames=TRUE) {
+    method <- match.arg(method)
+    if (!is(x, "vsa"))
+        stop("x must be a vsa object")
+    if (!is(mem, "vsamem"))
+        stop("x must be a vsamem object")
+    if (storage.mode(mem)!="double")
+        stop("storage.mode(mem)!='double'")
+    if (storage.mode(x)!="double")
+        stop("storage.mode(x)!='double'")
+    if (length(x) != nrow(mem))
+        stop("length(x) != nrow(mem)")
     xmag <- mag(x)
     if (xmag==0)
         xmag <- 1
-    res <- drop(crossprod(x, unclass(mem)))
+    if (method=="fast") {
+        res <- numeric(ncol(mem))
+        .C("crossprod_skipna", mem, nrow(mem), ncol(mem), x, length(x), 1L, res, DUP=FALSE, NAOK=TRUE)
+        if (usenames)
+            names(res) <- colnames(mem)
+    } else {
+        res <- drop(crossprod(x, unclass(mem)))
+    }
+    if (cos) {
+        memmag <- attr(mem, "mag")
+        if (length(memmag) != ncol(mem))
+            memmag <- sqrt(colSums(unclass(mem)^2, na.rm=T))
+        if (any(i <- memmag==0))
+            memmag[i] <- 1
+        res <- res / (xmag * memmag)
+    }
+    res
+}
+
+realhrr.dotmem <- function(x, mem, ..., cos=FALSE, method=c("crossprod", "matprod")) {
+    method <- match.arg(method)
+    if (!is(x, "vsa"))
+        stop("x must be a vsa object")
+    if (!is(mem, "vsamem"))
+        stop("x must be a vsamem object")
+    xmag <- mag(x)
+    if (xmag==0)
+        xmag <- 1
+    if (storage.mode(mem)!="double")
+        stop("storage.mode(mem)!='double'")
+    if (storage.mode(x)!="double")
+        stop("storage.mode(x)!='double'")
+    res <- numeric(ncol(mem))
+    if (method=="matprod")
+        .C("matprod_skipna", t(mem), ncol(mem), nrow(mem), x, length(x), 1L, res, DUP=FALSE, NAOK=TRUE)
+    else
+        .C("crossprod_skipna", mem, nrow(mem), ncol(mem), x, length(x), 1L, res, DUP=FALSE, NAOK=TRUE)
+    names(res) <- colnames(mem)
     if (cos) {
         memmag <- attr(mem, "mag")
         if (length(memmag) != ncol(mem))
