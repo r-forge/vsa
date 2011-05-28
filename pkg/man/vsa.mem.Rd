@@ -75,11 +75,14 @@ conformable(x=NULL, list, stop.on.error=TRUE)
   The functions \code{dotmem()} and \code{cosmem()} return a
   \code{simval} object.
 
-  The function \code{cleanup()} returns a VSA vector.
+  The function \code{cleanup()} returns a VSA vector that is the closest
+  match in mem that exceeds the threshold, or if no match exceeds the
+  threshold, returns \code{x}.
 
-  The function \code{conformable()} returns \code{TRUE} if \code{x} and all objects in \code{list}
-  are of the same VSA type and have the same length.  Otherwise it return \code{FALSE} or stops with
-  an error depending on the value of \code{stop.on.error}.
+  The function \code{conformable()} returns \code{TRUE} if \code{x} and
+  all objects in \code{list} are of the same VSA type and have the same
+  length.  Otherwise it return \code{FALSE} or stops with an error
+  depending on the value of \code{stop.on.error}.
 
   The function \code{bestmatch()} returns a numeric
   containing up to the specified number of best matches.  If
