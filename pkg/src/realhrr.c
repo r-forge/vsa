@@ -118,6 +118,7 @@ void realhrr_dotmemmp2(double *x, int *n, double *y, int *m, double *z, int *cor
 SEXP realhrr_create_vecdb(SEXP n, SEXP m, SEXP tag, SEXP prot) {
     int *p = 0;
     SEXP ptr;
+    p = Calloc(INTEGER(n)[0] * INTEGER(m)[0], double);
     ptr = R_MakeExternalPtr(p, install("vecdbptr"), R_NilValue);
     /* PROTECT(ptr); */
     return ptr;
