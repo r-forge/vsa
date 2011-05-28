@@ -114,7 +114,7 @@ equiv.drep <- function(e1, e2, tol=1e-6) {
     return(sum((e1-e2)^2) < tol * max(sum(e1^2), sum(e2^2)))
 }
 
-cosine.vsa <- function(e1, e2, mag1=NULL, mag2=NULL) {
+cosine.drep <- function(e1, e2, mag1=NULL, mag2=NULL) {
     if (class(e1)[1]!=class(e2)[1])
         stop("e1 and e2 must have same class")
     if (length(e1) != length(e2))
@@ -130,7 +130,7 @@ norm.drep <- function(e1) {
     return(e1 / sqrt(sum(unclass(e1)^2)))
 }
 
-mag.drep <- function(e1) {
+mag.drep <- function(e1, actual=NULL) {
     stop(need.drep.method("mag", class(e1)[1]))
     return(sqrt(sum(unclass(e1)^2)))
 }
@@ -153,22 +153,4 @@ vsascale.drep <- function(e1, e2) {
     stop(need.drep.method("vsascale", class(e1)[1]))
     e1[] <- elts(e1) * as.vector(e2)
     e1
-}
-
-obselete.conformable.drep <- function(vsa, vsalist, stop.on.error=T)
-{
-    stop(need.drep.method("conformable", class(vsa)[1]))
-    if (length(vsalist)==0)
-        return(TRUE)
-    if (any(sapply(vsalist, class)!=class(vsa)))
-        if (stop.on.error)
-            stop("all vsas must have the same class")
-        else
-            return(FALSE)
-    if (any(sapply(vsalist, length)!=length(vsa)))
-        if (stop.on.error)
-            stop("all vsas must have the same length")
-        else
-            return(FALSE)
-    return(TRUE)
 }
