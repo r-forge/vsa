@@ -10,7 +10,7 @@ newVec.realhrr <- function(what=c("rand", "I", "1", "0", "NA"),
     what <- match.arg(what)
     elts.supplied <- !is.null(elts)
     if (is.null(elts))
-	elts <- if (what=="rand") rnorm(len) else double(len)
+	elts <- if (what=="rand") rnorm(len)*(1/sqrt(len)) else double(len)
     if (what=="I" || what=="1" || what=="0" || what=="NA") {
         if (length(elts)!=len)
             elts <- rep(elts, len=len)
@@ -133,10 +133,17 @@ vsascale.realhrr <- function(e1, e2) {
     e1
 }
 
+# This cumbersomely-named method-method will get called by
+# dotmem(mem, x), cosmem(mem, x), bestmatch(mem, x), cleanup(mem, x)
+# via a method call to dotmem.vsamat() which calls the generic
+# dotmem.vsamat.compute().
 # The default will work, but a more efficent version can be supplied that
 # dispatches off the vsa subclass (i.e., the type of the vsa vector).
 # The method can safely assume the columns of mem conform with x.
-dotmem.vsamat.compute.realhrr <- function(x, mem, ..., cos=FALSE, method=c("fast", "R"), usenames=TRUE) {
+dotmem.vsamat.compute.realhrr <-
+    function(x, mem, ..., cos=FALSE,
+             method=c("fast", "R", "crossprod", "matprod", "dotmem", "dotmempp", "dotmempp1", "dotmemmp1", "dotmemmp2"),
+             cores=FALSE, usenames=TRUE) {
     method <- match.arg(method)
     if (!is(x, "vsa"))
         stop("x must be a vsa object")
@@ -153,12 +160,38 @@ dotmem.vsamat.compute.realhrr <- function(x, mem, ..., cos=FALSE, method=c("fast
         xmag <- 1
     if (method=="fast") {
         res <- numeric(ncol(mem))
-        .C("crossprod_skipna", mem, nrow(mem), ncol(mem), x, length(x), 1L, res, DUP=FALSE, NAOK=TRUE)
-        if (usenames)
-            names(res) <- colnames(mem)
-    } else {
+        .C("crossprod_skipna", mem, nrow(mem), ncol(mem), x, length(x), 1L, res, DUP=FALSE, NAOK=TRUE, PACKAGE="vsa")
+    } else if (method %in% c("R", "crossprod")) {
         res <- drop(crossprod(x, unclass(mem)))
+    } else if (method %in% c("matprod")) {
+        res <- numeric(ncol(mem))
+        .C("matprod_skipna", t(mem), ncol(mem), nrow(mem), x, length(x), 1L, res, DUP=FALSE, NAOK=TRUE, PACKAGE="vsa")
+    } else if (method %in% c("dotmem")) {
+        res <- numeric(ncol(mem))
+        .C("realhrr_dotmem", x, length(x), mem, ncol(mem), res, DUP=FALSE, NAOK=TRUE, PACKAGE="vsa")
+    } else if (method %in% c("dotmempp")) {
+        res <- numeric(ncol(mem))
+        .C("realhrr_dotmempp", x, length(x), mem, ncol(mem), res, DUP=FALSE, NAOK=TRUE, PACKAGE="vsa")
+    } else if (method %in% c("dotmempp1")) {
+        res <- numeric(ncol(mem))
+        .C("realhrr_dotmempp1", x, length(x), mem, ncol(mem), res, DUP=FALSE, NAOK=TRUE, PACKAGE="vsa")
+    } else if (method %in% c("dotmemmp1")) {
+        res <- numeric(ncol(mem))
+        coreused <- integer(8)
+        .C("realhrr_dotmemmp1", x, length(x), mem, ncol(mem), res, coreused, DUP=FALSE, NAOK=TRUE, PACKAGE="vsa")
+        if (cores)
+            cat("coreused:", paste(coreused, collapse=" "), "\n")
+    } else if (method %in% c("dotmemmp2")) {
+        res <- numeric(ncol(mem))
+        coreused <- integer(8)
+        .C("realhrr_dotmemmp2", x, length(x), mem, ncol(mem), res, coreused, DUP=FALSE, NAOK=TRUE, PACKAGE="vsa")
+        if (cores)
+            cat("coreused:", paste(coreused, collapse=" "), "\n")
+    } else {
+        stop("unknown method:", method)
     }
+    if (usenames && is.null(names(res)))
+        names(res) <- colnames(mem)
     if (cos) {
         memmag <- attr(mem, "mag")
         if (length(memmag) != ncol(mem))
@@ -170,32 +203,3 @@ dotmem.vsamat.compute.realhrr <- function(x, mem, ..., cos=FALSE, method=c("fast
     res
 }
 
-realhrr.dotmem <- function(x, mem, ..., cos=FALSE, method=c("crossprod", "matprod")) {
-    method <- match.arg(method)
-    if (!is(x, "vsa"))
-        stop("x must be a vsa object")
-    if (!is(mem, "vsamem"))
-        stop("x must be a vsamem object")
-    xmag <- mag(x)
-    if (xmag==0)
-        xmag <- 1
-    if (storage.mode(mem)!="double")
-        stop("storage.mode(mem)!='double'")
-    if (storage.mode(x)!="double")
-        stop("storage.mode(x)!='double'")
-    res <- numeric(ncol(mem))
-    if (method=="matprod")
-        .C("matprod_skipna", t(mem), ncol(mem), nrow(mem), x, length(x), 1L, res, DUP=FALSE, NAOK=TRUE)
-    else
-        .C("crossprod_skipna", mem, nrow(mem), ncol(mem), x, length(x), 1L, res, DUP=FALSE, NAOK=TRUE)
-    names(res) <- colnames(mem)
-    if (cos) {
-        memmag <- attr(mem, "mag")
-        if (length(memmag) != ncol(mem))
-            memmag <- sqrt(colSums(unclass(mem)^2, na.rm=T))
-        if (any(i <- memmag==0))
-            memmag[i] <- 1
-        res <- res / (xmag * memmag)
-    }
-    res
-}

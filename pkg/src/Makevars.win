@@ -1,0 +1,4 @@
+# as from Luke Tierny's pnmath package
+PKG_CFLAGS=-fopenmp
+PKG_LIBS=$(BLAS_LIBS) $(FLIBS) -mthreads -lgomp
+# -lpthreadGC2

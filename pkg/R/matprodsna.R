@@ -10,7 +10,7 @@ matprodsna <- function(x, y) {
     if (ncol(x) != nrow(y))
         stop("ncol(x) != nrow(y)")
     z <- matrix(numeric(nrow(x) * ncol(y)), nrow=nrow(x), ncol=ncol(y), dimnames=list(rownames(x), colnames(y)))
-    .C("matprod_skipna", x, nrow(x), ncol(x), y, nrow(y), ncol(y), z, DUP=FALSE, NAOK=TRUE)
+    .C("matprod_skipna", x, nrow(x), ncol(x), y, nrow(y), ncol(y), z, DUP=FALSE, NAOK=TRUE, PACKAGE="vsa")
     z
 }
 
@@ -37,7 +37,7 @@ crossprodsna <- function(x, y) {
     if (nrow(x) != nrow(y))
         stop("nrow(x) != nrow(y)")
     z <- matrix(numeric(ncol(x) * ncol(y)), nrow=ncol(x), ncol=ncol(y), dimnames=list(colnames(x), colnames(y)))
-    .C("crossprod_skipna", x, nrow(x), ncol(x), y, nrow(y), ncol(y), z, DUP=FALSE, NAOK=TRUE)
+    .C("crossprod_skipna", x, nrow(x), ncol(x), y, nrow(y), ncol(y), z, DUP=FALSE, NAOK=TRUE, PACKAGE="vsa")
     z
 }
 

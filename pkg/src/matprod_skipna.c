@@ -40,7 +40,7 @@ void matprod_skipna(double *x, int *nrx, int *ncx,
 void crossprod_skipna(double *x, int *nrx, int *ncx,
 	                    double *y, int *nry, int *ncy, double *z)
 {
-    char *transN1 = "N", *transN2 = "N", *transT1 = "T", *transT2 = "T";
+    char *transN2 = "N", *transT1 = "T";
     int i, int_1 = 1;
     double one = 1.0, zero = 0.0;
 
@@ -61,3 +61,4 @@ void crossprod_skipna(double *x, int *nrx, int *ncx,
     } else /* zero-extent operations should return zeroes */
         for(i = 0; i < (*nrx)*(*ncy); i++) z[i] = 0;
 }
+

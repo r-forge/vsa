@@ -3,7 +3,7 @@ export(newVec, vsaprod, vsapower, appinv, dot, equiv, cosine, norm, mag, add, ad
 # Functions for vsa objects (don't need specific methods for subclsses)
 export("%.%", "%==%", "%cos%", elts)
 # Functions for working with 'vsamem' objects
-export(vsamem, addmem, delmem, dotmem, cosmem, cleanup, bestmatch)
+export(vsamem, addmem, getmem, delmem, dotmem, cosmem, cleanup, bestmatch, memsize, memlabels)
 
 S3method(addmem, vsamat)
 S3method(addmem, default)
@@ -12,6 +12,18 @@ S3method(cosmem, default)
 S3method(dotmem, vsalist)
 S3method(cleanup, default)
 S3method(bestmatch, default)
+
+S3method(getmem, vsalist)
+S3method(getmem, vsamat)
+
+S3method(memsize, vsalist)
+S3method(memlabels, vsalist)
+S3method(memsize, vsamat)
+S3method(memlabels, vsamat)
+
+S3method(print, vsa)
+S3method(print, vsalist)
+S3method(print, vsamat)
 
 S3method(print, vsa)
 S3method(print, vsalist)

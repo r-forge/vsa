@@ -2,12 +2,15 @@
 \alias{vsa.mem}
 \alias{vsamem}
 \alias{addmem}
+\alias{getmem}
 \alias{delmem}
 \alias{bestmatch}
 \alias{cleanup}
 \alias{cosmem}
 \alias{dotmem}
 \alias{conformable}
+\alias{memsize}
+\alias{memlabels}
 %- Also NEED an '\alias' for EACH other topic documented here.
 \title{ Functions to work with VSA memories. }
 \description{
@@ -20,25 +23,32 @@ VSA vectors against the vectors in a memory.
 \usage{
 vsamem(..., labels = NULL, type = c("list", "matrix"), call = match.call(expand.dots = FALSE))
 addmem(..., labels = NULL, call = match.call(expand.dots = FALSE))
+getmem(mem, i)
 delmem(mem, items)
-dotmem(mem, x, cos=FALSE)
-cosmem(mem, x)
-cleanup(mem, x, cos=TRUE, threshold=NA)
-bestmatch(mem, x, cos=TRUE, n=1, num=FALSE)
+dotmem(mem, x, ..., cos=FALSE)
+cosmem(mem, x, ...)
+cleanup(mem, x, ..., cos=TRUE, threshold=NA)
+bestmatch(mem, x, ..., cos=TRUE, n=1, num=FALSE)
+memsize(mem)
+memlabels(mem)
 conformable(x=NULL, list, stop.on.error=TRUE)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
-  \item{\dots}{ A collection of conformable VSA vectors (i.e., of same
+  \item{\dots}{For \code{vsamem()} and \code{addmem()}: a collection of conformable VSA vectors (i.e., of same
     type and length) to be stored in a VSA memory, or VSA memory objects
-    containing such conformable VSA vectors.}
+    containing such conformable VSA vectors.  For other calls, various
+    arguments that can control behavior (e.g., that specify implementation used
+    to find bestmatches, such as GPU code, etc.)}
   \item{call}{ The actual dot args, from which labels can be deduced if
     not otherwise supplied. }
   \item{mem}{ A VSA memory object }
   \item{labels}{ A character vector containing names of the items to use}
   \item{type}{ Type of memory to create }
   \item{items}{ A character vector containing names of the items to
-    delete from the moery}
+    delete from the memory}
+  \item{i}{ A character vector or a numeric containing a single name or
+    index of the item to retrive from the memory}
   \item{x}{ A VSA vector }
   \item{list}{ A list of VSA vectors (can be a VSA memory object) }
   \item{cos}{ \code{TRUE} or \code{FALSE} indicating whether or not to
