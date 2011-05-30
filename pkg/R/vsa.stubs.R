@@ -20,11 +20,12 @@
 newVec.drep <- function(what=c("rand", "I", "1", "0", "NA"),
                         len=options("vsalen")[[1]],
                         elts=NULL,
-                        norm=options("vsanorm")[[1]],
+                        opnorm=options("vsaopnorm")[[1]],
+                        cnorm=options("vsacnorm")[[1]],
                         vsatype=options("vsatype")[[1]]) {
     stop("cannot work with 'vsa' vectors -- need to work with a subclass of 'vsa'")
-    if (is.null(norm))
-        norm <- FALSE
+    if (is.null(cnorm))
+        cnorm <- FALSE
     what <- match.arg(what)
     elts.supplied <- !is.null(elts)
     if (is.null(elts))
@@ -43,7 +44,7 @@ newVec.drep <- function(what=c("rand", "I", "1", "0", "NA"),
     if (!is.numeric(elts) || is.array(elts))
         stop("elts must be numeric vector")
     res <- structure(as.vector(elts), class=c("realhrr", "drep"))
-    if (norm && what=="rand")
+    if (cnorm && what=="rand")
         res <- norm(res)
     res
 }

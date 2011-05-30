@@ -21,7 +21,7 @@ VSA vectors against the vectors in a memory.
 
 }
 \usage{
-vsamem(..., labels = NULL, type = c("list", "matrix"), call = match.call(expand.dots = FALSE))
+vsamem(..., labels = NULL, type = c("list", "matrix", "db"), call = match.call(expand.dots = FALSE))
 addmem(..., labels = NULL, call = match.call(expand.dots = FALSE))
 getmem(mem, i)
 delmem(mem, items)

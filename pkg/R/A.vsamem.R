@@ -1,43 +1,11 @@
-vsamem <- function(..., labels=NULL, type=c("list", "matrix"), call=match.call(expand.dots=FALSE)) {
+vsamem <- function(..., labels=NULL, type=c("list", "matrix", "db"), call=match.call(expand.dots=FALSE)) {
     type <- match.arg(type)
     if (type=="list")
         return(addmem.default(..., labels=labels, call=call))
-    else
+    else if (type=="matrix")
         return(addmem.vsamat(..., labels=labels, call=call))
-}
-
-getmem <- function(mem, i) UseMethod("getmem")
-
-getmem.vsamat <- function(mem, i) {
-    example <- attr(mem, "example")
-    if (is.character(i) && length(i)==1) {
-        j <- match(i, colnames(mem))
-        if (is.na(j))
-            stop("label '", i, "' not found")
-    } else if (is.numeric(i) && length(i)==1) {
-        j <- i
-        if (i<1 || i>ncol(mem))
-            stop("index ", i, " out of range (mem has ", ncol(mem), " elements)")
-    } else {
-        stop("i must be single character or numeric")
-    }
-    example[] <- mem[,j]
-    return(example)
-}
-
-getmem.vsalist <- function(mem, i) {
-    if (is.character(i) && length(i)==1) {
-        j <- match(i, colnames(mem))
-        if (is.na(j))
-            stop("label '", i, "' not found")
-    } else if (is.numeric(i) && length(i)==1) {
-        j <- i
-        if (i<1 || i>length(mem))
-            stop("index ", i, " out of range (mem has ", length(mem), " elements)")
-    } else {
-        stop("i must be single character or numeric")
-    }
-    return(mem[[j]])
+    else if (type=="db")
+        return(addmem.vsadb(..., labels=labels, call=call))
 }
 
 addmem <- function(..., labels=NULL, call=match.call(expand.dots=FALSE)) UseMethod("addmem")
@@ -193,6 +161,87 @@ addmem.default <- function(..., labels=NULL, call=match.call(expand.dots=FALSE))
     if (length(items)>0)
         attr(items, "mag") <- lapply(unclass(items), mag)
     return(items)
+}
+
+getmem <- function(mem, i) UseMethod("getmem")
+
+getmem.vsamat <- function(mem, i) {
+    example <- attr(mem, "example")
+    if (is.character(i) && length(i)==1) {
+        j <- match(i, colnames(mem))
+        if (is.na(j))
+            stop("label '", i, "' not found")
+    } else if (is.numeric(i) && length(i)==1) {
+        j <- i
+        if (i<1 || i>ncol(mem))
+            stop("index ", i, " out of range (mem has ", ncol(mem), " elements)")
+    } else {
+        stop("i must be single character or numeric")
+    }
+    example[] <- mem[,j]
+    return(example)
+}
+
+getmem.vsalist <- function(mem, i) {
+    if (is.character(i) && length(i)==1) {
+        j <- match(i, colnames(mem))
+        if (is.na(j))
+            stop("label '", i, "' not found")
+    } else if (is.numeric(i) && length(i)==1) {
+        j <- i
+        if (i<1 || i>length(mem))
+            stop("index ", i, " out of range (mem has ", length(mem), " elements)")
+    } else {
+        stop("i must be single character or numeric")
+    }
+    return(mem[[j]])
+}
+
+setmem <- function(mem, i, x, label=NULL) UseMethod("setmem")
+
+setmem.vsamat <- function(mem, i, x, label=NULL) {
+    example <- attr(mem, "example")
+    conformable(x, example)
+    if (is.character(i) && length(i)==1) {
+        j <- match(i, colnames(mem))
+        if (is.na(j)) {
+            j <- which(is.na(colnames(mem)))[1]
+            if (is.na(j))
+                stop("label '", i, "' not found, and no empty labels to use")
+            colnames(mem)[j] <- i
+        }
+    } else if (is.numeric(i) && length(i)==1) {
+        j <- i
+        if (i<1 || i>ncol(mem))
+            stop("index ", i, " out of range (mem has ", ncol(mem), " elements)")
+        if (!is.null(label))
+            colnames(mem)[j] <- label
+    } else {
+        stop("i must be single character or numeric")
+    }
+    mem[,j] <- x[]
+    return(j)
+}
+
+setmem.vsalist <- function(mem, i, x, label=NULL) {
+    example <- attr(mem, "example")
+    conformable(x, example)
+    if (is.character(i) && length(i)==1) {
+        j <- match(i, names(mem))
+        if (is.na(j))
+            stop("label '", i, "' not found, and no empty labels to use")
+        names(mem)[j] <- i
+    } else if (is.numeric(i) && length(i)==1) {
+        j <- i
+        if (i<1 || i>length(mem))
+            stop("index ", i, " out of range (mem has ", length(mem), " elements)")
+        if (!is.null(label))
+            names(mem)[j] <- label
+    } else {
+        stop("i must be single character or numeric")
+    }
+    mem[[j]][] <- x[]
+    return(j)
 }
 
 memlabels <- function(mem) UseMethod("memlabels")

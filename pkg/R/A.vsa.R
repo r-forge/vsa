@@ -5,7 +5,8 @@
 
 .onLoad <- function(libname, pkgname) {
     options(vsalen=1024)
-    options(vsanorm=TRUE)
+    options(vsaopnorm=TRUE)
+    options(vsacnorm=TRUE)
     options(vsatype="realhrr")
 }
 
@@ -14,33 +15,36 @@
 # to be called directly -- it gets called from randVec().
 
 newVec <- function(what=c("rand", "I", "1", "0", "NA"),
-                    len=options("vsalen")[[1]],
-                    elts=NULL,
-                    norm=options("vsanorm")[[1]],
-		    vsatype=options("vsatype")[[1]]) UseMethod("newVec")
+                   len=options("vsalen")[[1]],
+                   elts=NULL,
+                   opnorm=options("vsaopnorm")[[1]],
+                   cnorm=options("vsacnorm")[[1]],
+                   vsatype=options("vsatype")[[1]])
+    UseMethod("newVec")
 
 # Create a dummy object with class == options('vsatype')[[1]]
 # in order to dispatch the appropriate 'newVec' method
 
 newVec.default <- function(what=c("rand", "I", "1", "0", "NA"),
-                    len=options("vsalen")[[1]],
-                    elts=NULL,
-                    norm=options("vsanorm")[[1]],
-		    vsatype=options("vsatype")[[1]]) {
+                           len=options("vsalen")[[1]],
+                           elts=NULL,
+                           opnorm=options("vsaopnorm")[[1]],
+                           cnorm=options("vsacnorm")[[1]],
+                           vsatype=options("vsatype")[[1]]) {
     if (is.null(vsatype))
-	stop("no vsatype specified -- must set options(vsatype=...)")
+        stop("no vsatype specified -- must set options(vsatype=...)")
     if (length(vsatype)!=1)
-	stop("must set options('vsatype') to the name of a subclass of 'vsa'")
+        stop("must set options('vsatype') to the name of a subclass of 'vsa'")
     if (is.null(len))
-	stop("no len specified -- must set options(vsalen=...)")
+        stop("no len specified -- must set options(vsalen=...)")
     what <- match.arg(what)
-    newVec(structure(what, class=vsatype), len, elts, norm)
+    newVec(structure(what, class=vsatype), len, elts, opnorm, cnorm)
 }
 
 # Simval
 simval <- function(x) {
     if (!is.numeric(x) || length(x)!=1)
-	stop("x must be a scalar")
+        stop("x must be a scalar")
     structure(as.vector(x), class="simval")
 }
 
@@ -94,9 +98,9 @@ function (e1, e2 = NULL)
         return(appinv(e1))
     } else if (.Generic=="/") {
         if (rclass)
-	    return(vsaprod(e1, appinv(e2)))
-	else
-	    return(vsascale(e1, 1/e2))
+            return(vsaprod(e1, appinv(e2)))
+        else
+            return(vsascale(e1, 1/e2))
     } else if (.Generic=="+" || .Generic=="-") {
         if (lclass && rclass) {
             if (.Generic=="-")
@@ -148,7 +152,7 @@ scalar.simval <- function(e1) as.vector(e1)
 
 scalar.default <- function(e1) {
     if (!is.numeric(e1) || length(e1)!=1)
-	stop("e1 must be a numeric vector of length 1")
+        stop("e1 must be a numeric vector of length 1")
     as.vector(e1)
 }
 
@@ -241,17 +245,17 @@ function (e1, e2 = NULL)
         stop("odd -- neither arugment has a class?")
     }
     if (!rclass && !is.numeric(e2))
-	stop("can only combine simval's with numbers")
+        stop("can only combine simval's with numbers")
     if (!lclass && !is.numeric(e1))
-	stop("can only combine simval's with numbers")
+        stop("can only combine simval's with numbers")
     if (.Generic=="*") {
-	if (rclass && lclass)
-	    stop("'*' must have a simval as one argument and a number as the other")
-	return(simval(unclass(e1) * unclass(e2)))
+        if (rclass && lclass)
+            stop("'*' must have a simval as one argument and a number as the other")
+        return(simval(unclass(e1) * unclass(e2)))
     } else if (.Generic=="^") {
         if (!inherits(e1, "simval") || inherits(e2, "simval"))
             stop("'^' when used with simval's must have the simval on the left and the scalar on the right")
-	return(simval(unclass(e1) ^ e2))
+        return(simval(unclass(e1) ^ e2))
     } else if (.Generic=="/") {
         if (rclass)
             stop("cannot have a simval object on the rhs of '/'")
@@ -259,17 +263,17 @@ function (e1, e2 = NULL)
     } else if (.Generic=="+" || .Generic=="-") {
         if (inherits(e1, "simval") && inherits(e2, "simval")) {
             if (.Generic=="-")
-	        return(simval(unclass(e1) - unclass(e2)))
- 	    else
-	        return(simval(unclass(e1) + unclass(e2)))
+                return(simval(unclass(e1) - unclass(e2)))
+            else
+                return(simval(unclass(e1) + unclass(e2)))
         } else {
             stop("'", .Generic, "' requires both arguments to be simval's")
         }
     } else if (.Generic=="==" || .Generic=="!=") {
-	if (rclass)
-	    e2 <- unclass(e2)
-	if (lclass)
-	    e1 <- unclass(e1)
+        if (rclass)
+            e2 <- unclass(e2)
+        if (lclass)
+            e1 <- unclass(e1)
         res <- (e1 == e2)
         if (.Generic=="==")
             return(all(res))

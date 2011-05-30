@@ -3,14 +3,15 @@
 newVec.realhrr <- function(what=c("rand", "I", "1", "0", "NA"),
                            len=options("vsalen")[[1]],
                            elts=NULL,
-                           norm=options("vsanorm")[[1]],
+                           opnorm=options("vsaopnorm")[[1]],
+                           cnorm=options("vsacnorm")[[1]],
                            vsatype) {
-    if (is.null(norm))
-        norm <- FALSE
+    if (is.null(cnorm))
+        cnorm <- FALSE
     what <- match.arg(what)
     elts.supplied <- !is.null(elts)
     if (is.null(elts))
-	elts <- if (what=="rand") rnorm(len)*(1/sqrt(len)) else double(len)
+        elts <- if (what=="rand") rnorm(len)*(1/sqrt(len)) else double(len)
     if (what=="I" || what=="1" || what=="0" || what=="NA") {
         if (length(elts)!=len)
             elts <- rep(elts, len=len)
@@ -25,7 +26,7 @@ newVec.realhrr <- function(what=c("rand", "I", "1", "0", "NA"),
     if (!is.numeric(elts) || is.array(elts))
         stop("elts must be numeric vector")
     res <- structure(as.vector(elts), class=c("realhrr", "vsa"))
-    if (norm && what=="rand")
+    if (cnorm && what=="rand")
         res <- norm(res)
     res
 }
@@ -51,7 +52,7 @@ vsaprod.realhrr <- function(e1, e2, method=c("fft", "outer"))
 
 vsapower.realhrr <- function(e1, e2) {
     if (is(e2, "vsa") || is(e2, "simval") || !is.numeric(e2) || length(e2)!=1)
-	stop("e2 must be a scalar")
+        stop("e2 must be a scalar")
     if (e2==1) {
         return(e1)
     } else if (e2==0) {
@@ -128,7 +129,7 @@ add.realhrr <- function(e1, ...) {
 
 vsascale.realhrr <- function(e1, e2) {
     if (is(e2, "vsa") || is(e2, "simval") || !is.numeric(e2) || length(e2)!=1)
-	stop("e2 must be a scalar")
+        stop("e2 must be a scalar")
     e1[] <- elts(e1) * as.vector(e2)
     e1
 }
