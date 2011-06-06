@@ -17,9 +17,9 @@
 newVec <- function(what=c("rand", "I", "1", "0", "NA"),
                    len=options("vsalen")[[1]],
                    elts=NULL,
-                   opnorm=options("vsaopnorm")[[1]],
-                   cnorm=options("vsacnorm")[[1]],
-                   vsatype=options("vsatype")[[1]])
+                   cnorm=getOption("vsacnorm", TRUE),
+                   opnorm=getOption("vsaopnorm", FALSE),
+                   vsatype=getOption("vsatype"))
     UseMethod("newVec")
 
 # Create a dummy object with class == options('vsatype')[[1]]
@@ -28,9 +28,9 @@ newVec <- function(what=c("rand", "I", "1", "0", "NA"),
 newVec.default <- function(what=c("rand", "I", "1", "0", "NA"),
                            len=options("vsalen")[[1]],
                            elts=NULL,
-                           opnorm=options("vsaopnorm")[[1]],
-                           cnorm=options("vsacnorm")[[1]],
-                           vsatype=options("vsatype")[[1]]) {
+                           cnorm=getOption("vsacnorm", TRUE),
+                           opnorm=getOption("vsaopnorm", FALSE),
+                           vsatype=getOption("vsatype")) {
     if (is.null(vsatype))
         stop("no vsatype specified -- must set options(vsatype=...)")
     if (length(vsatype)!=1)

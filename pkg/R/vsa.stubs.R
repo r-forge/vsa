@@ -20,9 +20,9 @@
 newVec.drep <- function(what=c("rand", "I", "1", "0", "NA"),
                         len=options("vsalen")[[1]],
                         elts=NULL,
-                        opnorm=options("vsaopnorm")[[1]],
-                        cnorm=options("vsacnorm")[[1]],
-                        vsatype=options("vsatype")[[1]]) {
+                        cnorm=getOption("vsacnorm", TRUE),
+                        opnorm=getOption("vsaopnorm", FALSE),
+                        vsatype=getOption("vsatype")) {
     stop("cannot work with 'vsa' vectors -- need to work with a subclass of 'vsa'")
     if (is.null(cnorm))
         cnorm <- FALSE

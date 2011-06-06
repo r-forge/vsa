@@ -5,7 +5,8 @@ vsamem <- function(..., labels=NULL, type=c("list", "matrix", "db"), call=match.
     else if (type=="matrix")
         return(addmem.vsamat(..., labels=labels, call=call))
     else if (type=="db")
-        return(addmem.vsadb(..., labels=labels, call=call))
+        # addmem.vsadb has additional named arguments, so don't compute call at this level
+        return(addmem.vsadb(..., labels=labels))
 }
 
 addmem <- function(..., labels=NULL, call=match.call(expand.dots=FALSE)) UseMethod("addmem")
@@ -37,14 +38,16 @@ addmem.vsamat <- function(..., labels=NULL, call=match.call(expand.dots=FALSE)) 
             if (length(items)>=2)
                 conformable(items[[1]], items[-1])
             if (!is.null(names(items))) {
+                # This is the case where args are named
                 labels <- names(items)
             } else {
-                browser()
-                if (is.null(labels))
+                if (is.null(labels)) {
+                    # Take labels from names of actual arguments
                     labels <- sapply(call$..., function(x) if (is.name(x)) as.character(x) else "")
-                else
+                } else {
                     if (length(labels) != length(items))
                         stop("labels are wrong length for items")
+                }
             }
             example <- if (length(items)>0) items[[1]]
             items <- matrix(unlist(items), ncol=length(items), dimnames=list(NULL, labels))

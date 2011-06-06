@@ -7,6 +7,7 @@ export(vsamem, addmem, getmem, delmem, dotmem, cosmem, cleanup, bestmatch, memsi
 
 S3method(addmem, vsamat)
 S3method(addmem, default)
+S3method(addmem, vsadb)
 
 S3method(cosmem, default)
 S3method(dotmem, vsalist)

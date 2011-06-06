@@ -57,11 +57,12 @@ SEXP realhrr_ramdb_get(SEXP ptr, SEXP veclen, SEXP memsize, SEXP vecidx) {
 
 SEXP realhrr_ramdb_set(SEXP ptr, SEXP veclen, SEXP memsize, SEXP vecidx, SEXP vec) {
     float *mem = (float*) R_ExternalPtrAddr(ptr);
-    double *x;
+    double *x, s2 = 0;
     int n = INTEGER(veclen)[0];
     int m = INTEGER(memsize)[0];
     int k = INTEGER(vecidx)[0] - 1; /* vecidx is 1-based, k is 0-based */
     int i;
+    SEXP ans;
     if (k >= m)
         error("vecidx too large");
     if (k < 0)
@@ -69,9 +70,13 @@ SEXP realhrr_ramdb_set(SEXP ptr, SEXP veclen, SEXP memsize, SEXP vecidx, SEXP ve
     x = REAL(vec);
     /* vecidx is 0-based */
     mem += k * n;
-    for (i = 0; i<n; i++)
+    for (i = 0; i<n; i++) {
+        s2 += (*x) * (*x);
         *(mem++) = *(x++);
-    return vec;
+    }
+    ans = allocVector(REALSXP, 1);
+    REAL(ans)[0] = sqrt(s2);
+    return ans;
 }
 
 /*

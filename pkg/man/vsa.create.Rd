@@ -10,7 +10,8 @@
 }
 \usage{
 newVec(what = c("rand", "I", "1", "0", "NA"), len = options("vsalen")[[1]],
-        elts = NULL, norm = options("vsanorm")[[1]], vsatype = options("vsatype")[[1]])
+        elts = NULL, cnorm = getOption("vsacnorm", TRUE), opnorm = getOption("vsaopnorm", FALSE),
+        vsatype = getOption("vsatype"))
 elts(e1)
 \method{print}{vsa}(x, \dots, values = FALSE)
 }
@@ -36,8 +37,11 @@ values.} \code{what} is ignored if \code{elts} is supplied.}
   \item{vsatype}{ the subclass of vsa: must be a character string for
   which a function \code{newVec.<vsatype>} exists}
 
-  \item{norm}{ a logical value (\code{TRUE} or \code{FALSE}) - controlls
+  \item{cnorm}{ a logical value (\code{TRUE} or \code{FALSE}) - controls
   whether the new vectors is created to have a magnitude of 1}
+
+  \item{opnorm}{ a logical value (\code{TRUE} or \code{FALSE}) - controls
+  whether the result of a vsa operation is normalized to have a magnitude of 1}
 
   \item{e1}{a vsa vector}
 
@@ -52,7 +56,7 @@ values.} \code{what} is ignored if \code{elts} is supplied.}
   package currently provides an implementation of real-valued HRR
   vectors.  Other possible types include binary vectors,
   frequency-domain HRRs, and more.
-  
+
   The length and type of the vector created by \code{newVec()} is
   determined by the current settings for \code{options("vsatype")},
   \code{options("vsanorm")}, and \code{options("vsalen")}.

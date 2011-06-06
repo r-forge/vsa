@@ -22,8 +22,8 @@
 newVec.ihrr32 <- function(what=c("rand", "I", "1", "0", "NA"),
                            len=options("vsalen")[[1]],
                            elts=NULL,
-                           opnorm=options("vsaopnorm")[[1]],
                            cnorm=options("vsacnorm")[[1]],
+                           opnorm=options("vsaopnorm")[[1]],
                            vsatype) {
     if (is.null(cnorm))
         cnorm <- FALSE

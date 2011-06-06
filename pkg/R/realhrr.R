@@ -3,9 +3,9 @@
 newVec.realhrr <- function(what=c("rand", "I", "1", "0", "NA"),
                            len=options("vsalen")[[1]],
                            elts=NULL,
-                           opnorm=options("vsaopnorm")[[1]],
-                           cnorm=options("vsacnorm")[[1]],
-                           vsatype) {
+                           cnorm=getOption("vsacnorm", TRUE),
+                           opnorm=getOption("vsaopnorm", FALSE),
+                           vsatype=getOption("vsatype")) {
     if (is.null(cnorm))
         cnorm <- FALSE
     what <- match.arg(what)
