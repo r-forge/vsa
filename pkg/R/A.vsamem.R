@@ -1,12 +1,17 @@
 vsamem <- function(..., labels=NULL, type=c("list", "matrix", "db"), call=match.call(expand.dots=FALSE)) {
     type <- match.arg(type)
-    if (type=="list")
+    if (type=="list") {
         return(addmem.default(..., labels=labels, call=call))
-    else if (type=="matrix")
+    } else if (type=="matrix") {
         return(addmem.vsamat(..., labels=labels, call=call))
-    else if (type=="db")
-        # addmem.vsadb has additional named arguments, so don't compute call at this level
-        return(addmem.vsadb(..., labels=labels))
+    } else if (type=="db") {
+        # addmem.vsadb has additional named arguments, but need compute call at this level to get names
+        # addmem.vsadb will have to remove other matched formal arguments from call$...
+        if (getOption("vsatype")=="realhrr")
+            return(addmem.vsadb(..., labels=labels, call=call))
+        else
+            stop("db memory not implemented for options('vsatype')=", getOption('vsatype'))
+    }
 }
 
 addmem <- function(..., labels=NULL, call=match.call(expand.dots=FALSE)) UseMethod("addmem")

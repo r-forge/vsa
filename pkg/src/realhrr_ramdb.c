@@ -20,7 +20,7 @@ static void realhrr_ramdb_finalizer(SEXP ptr)
     if (!R_ExternalPtrAddr(ptr))
         return;
     /* close the ramdb */
-    Free(ptr);
+    /* Free(ptr); */
     R_ClearExternalPtr(ptr);
 }
 
