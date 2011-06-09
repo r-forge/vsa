@@ -207,7 +207,7 @@ conformable.vsa <- function(x=NULL, list, stop.on.error=TRUE)
             return(FALSE)
     if (length(lengths)>1)
         if (stop.on.error)
-            stop("not all objects have the same length (", paste(length, collapse=", "), ")")
+            stop("not all objects have the same length (", paste(lengths, collapse=", "), ")")
         else
             return(FALSE)
     return(TRUE)

@@ -8,9 +8,10 @@
 #     example:
 #     mag
 # Use attributes for example and mag to be same as other vsamem classes
-addmem.vsadb <- function(..., mem=NULL, memsize=NULL, labels=NULL, call=match.call(expand.dots=FALSE)) {
+addmem.vsadb <- function(..., mem=NULL, memsize=NULL, fill=FALSE, labels=NULL, call=match.call(expand.dots=FALSE)) {
     call$...$memsize <- NULL
     call$...$mem <- NULL
+    call$...$fill <- NULL
     if (!is.null(mem) && !is.null(memsize))
         stop("cannot supply both mem and memsize")
     if (length(call$...)) {
@@ -21,17 +22,19 @@ addmem.vsadb <- function(..., mem=NULL, memsize=NULL, labels=NULL, call=match.ca
     } else {
         example <- newVec("1")
         vsamat.memsize <- 0
-        vsamat.labels <- character(0)
+        vsamat.labels <- labels
     }
     if (is.null(mem)) {
         memsize <- as.integer(max(memsize, vsamat.memsize))
         if (length(vsamat.labels) < memsize)
             length(vsamat.labels) <- memsize
-        mem <- create.realhrr_ramdb(memsize, example=example, fill=FALSE, labels=vsamat.labels)
+        mem <- create.realhrr_ramdb(memsize, example=example, fill=fill, labels=vsamat.labels)
         n <- as.integer(mem$veclen)
         for (i in as.integer(seq(len=vsamat.memsize)))
             attr(mem, "mag")[i] <- .Call("realhrr_ramdb_set", mem$ramdb, n, memsize, i, vsamat[,i], PACKAGE="vsa")
     } else {
+        if (fill)
+            stop("can only supply fill=TRUE when creating a new memory")
         conformable(example, attr(mem, "example"))
         memsize <- as.integer(memsize(mem))
         n <- as.integer(mem$veclen)
@@ -75,7 +78,7 @@ create.realhrr_ramdb <- function(memsize, example=newVec(), fill=FALSE, labels=N
     mem$memsize <- as.integer(memsize)
     cnorm <- as.logical(getOption("vsacnorm", TRUE))
     if (fill)
-        attr(mem, "mag") <- .Call("realhrr_ramdb_setrand", mem$ramdb, length(example), as.integer(memsize), NULL, cnorm, NULL, PACKAGE="vsa")
+        attr(mem, "mag") <- .Call("realhrr_ramdb_set_rand", mem$ramdb, length(example), as.integer(memsize), NULL, cnorm, NULL, PACKAGE="vsa")
     else
         attr(mem, "mag") <- numeric(memsize)
     attr(mem, "example") <- example
@@ -151,6 +154,7 @@ dotmem.realhrr_ramdb <- function(mem, x, ..., cos=FALSE) {
     dot <- .Call("realhrr_ramdb_dot", mem$ramdb, length(x), as.integer(memsize), ii, x, PACKAGE="vsa")
     if (cos)
         dot <- dot / (mag(x) * attr(mem, "mag")[ii])
+    names(dot) <- mem$labels
     dot
 }
 

@@ -372,3 +372,10 @@ print.vsamat <- function(x, ...) {
     invisible(x)
 }
 
+contents <- function(mem, ...) UseMethod("contents")
+
+contents.vsamat <- function(mem, ...) {
+    x <- as.matrix(mem)
+    class(x) <- NULL
+    x
+}

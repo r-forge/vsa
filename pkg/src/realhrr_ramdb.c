@@ -173,12 +173,12 @@ SEXP realhrr_ramdb_set_rand(SEXP ptr, SEXP veclen, SEXP memsize, SEXP active, SE
             k = j;
         }
         /* k is 0-based */
-        x = mem + k * n;
-        s2 = 0;
         if (cnorm) {
+	    x = mem + k * n;
+            s2 = 0;
             for (i = 0; i < n; i++) {
                 *x = norm_rand() * scale;
-                s2 = (*x)*(*x);
+                s2 += (*x) * (*x);
                 x++;
             }
             s2 = sqrt(s2);
@@ -193,6 +193,8 @@ SEXP realhrr_ramdb_set_rand(SEXP ptr, SEXP veclen, SEXP memsize, SEXP active, SE
                 REAL(ans)[k] = 0;
             }
         } else {
+	    x = mem + k * n;
+            s2 = 0;
             for (i = 0; i < n; i++) {
                 *(x) = norm_rand() * scale;
                 s2 += (*x) * (*x);
