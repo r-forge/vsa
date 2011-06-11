@@ -1,0 +1,9 @@
+implement realhrr_ramdb8: 8bit approximation for HRR ramdb memory
+* all ordinary dreps stored as regular doubles
+* 8bit fractional used for ramdb
+* use 255 signed numbers with range +/-3 sd.
+* sd = sqrt(1/n)
+* scale * 127 = 3*sqrt(1/n)
+* => scale = 3/127 * sqrt(1/n)
+* xm is 8bit signed int, x is double version
+* x = 3/127 * xm * sqrt(1/n)
