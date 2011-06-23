@@ -1,0 +1,102 @@
+> options(vsalen=4, vsatype="realhrr", vsacnorm=FALSE, vsaopnorm=FALSE)
+> set.seed(1)
+> m5 <- vsamem(memsize=5, type="db", datatype="d")
+> m5
+RAM DB (double) containing 5 realhrr[4]: NA, NA, NA ...
+> a <- newVec()
+> a[] <- round(a[], digits=2)
+> b <- newVec()
+> b[] <- round(b[], digits=2)
+> c <- newVec()
+> c[] <- round(c[], digits=2)
+> d <- newVec()
+> d[] <- round(d[], digits=2)
+> e <- newVec()
+> e[] <- round(e[], digits=2)
+> m5 <- vsamem(a, b, memsize=5, type="db", datatype="d")
+> m5
+RAM DB (double) containing 5 realhrr[4]: a, b, NA ...
+> contents(m5)
+         a     b <NA> <NA> <NA>
+[1,] -0.31  0.16    0    0    0
+[2,]  0.09 -0.41    0    0    0
+[3,] -0.42  0.24    0    0    0
+[4,]  0.80  0.37    0    0    0
+> m5 <- setmem(m5, 4, d, label="d")
+> m5
+RAM DB (double) containing 5 realhrr[4]: a, b, NA ...
+> contents(m5)
+         a     b <NA>     d <NA>
+[1,] -0.31  0.16    0 -0.31    0
+[2,]  0.09 -0.41    0 -1.11    0
+[3,] -0.42  0.24    0  0.56    0
+[4,]  0.80  0.37    0 -0.02    0
+>
+> m5 <- setmem(m5, "c", c)
+> contents(m5)
+         a     b     c     d <NA>
+[1,] -0.31  0.16  0.29 -0.31    0
+[2,]  0.09 -0.41 -0.15 -1.11    0
+[3,] -0.42  0.24  0.76  0.56    0
+[4,]  0.80  0.37  0.19 -0.02    0
+> m5 <- setmem(m5, "e", e)
+> contents(m5)
+         a     b     c     d     e
+[1,] -0.31  0.16  0.29 -0.31 -0.01
+[2,]  0.09 -0.41 -0.15 -1.11  0.47
+[3,] -0.42  0.24  0.76  0.56  0.41
+[4,]  0.80  0.37  0.19 -0.02  0.30
+>
+> all.equal(contents(m5), cbind(a,b,c,d,e), tol=1e-6)
+[1] TRUE
+>
+> memmags(m5)
+[1] 0.9594790 0.6230570 0.8487049 1.2814835 0.6921705
+> all.equal(as.numeric(sqrt(colSums(contents(m5)^2))), memmags(m5), tol=1e-6)
+[1] TRUE
+> dotmem(m5, a)
+      a       b       c       d       e 
+ 0.9206  0.1087 -0.2706 -0.2550  0.1132 
+> dotmem(m5, a, cos=T)
+         a          b          c          d          e 
+ 1.0000000  0.1818303 -0.3323040 -0.2073918  0.1704503 
+> dotmem(m5, b, cos=T)
+         a          b          c          d          e 
+0.18183031 0.99999995 0.68193230 0.66692779 0.03501355 
+> dot(a,b)
+simval: 0.1087
+> cosine(a,b)
+simval: 0.1818303
+>
+> contents(m5)
+         a     b     c     d     e
+[1,] -0.31  0.16  0.29 -0.31 -0.01
+[2,]  0.09 -0.41 -0.15 -1.11  0.47
+[3,] -0.42  0.24  0.76  0.56  0.41
+[4,]  0.80  0.37  0.19 -0.02  0.30
+> m5 <- setmem(m5, "a", c)
+> contents(m5)
+         a     b     c     d     e
+[1,]  0.29  0.16  0.29 -0.31 -0.01
+[2,] -0.15 -0.41 -0.15 -1.11  0.47
+[3,]  0.76  0.24  0.76  0.56  0.41
+[4,]  0.19  0.37  0.19 -0.02  0.30
+> m5 <- setmem(m5, "a", a)
+> contents(m5)
+         a     b     c     d     e
+[1,] -0.31  0.16  0.29 -0.31 -0.01
+[2,]  0.09 -0.41 -0.15 -1.11  0.47
+[3,] -0.42  0.24  0.76  0.56  0.41
+[4,]  0.80  0.37  0.19 -0.02  0.30
+> m5 <- setmem(m5, 5, d, lab="f")
+> contents(m5)
+         a     b     c     d     f
+[1,] -0.31  0.16  0.29 -0.31 -0.31
+[2,]  0.09 -0.41 -0.15 -1.11 -1.11
+[3,] -0.42  0.24  0.76  0.56  0.56
+[4,]  0.80  0.37  0.19 -0.02 -0.02
+> memmags(m5)
+[1] 0.9594790 0.6230570 0.8487049 1.2814835 1.2814835
+> all.equal(as.numeric(sqrt(colSums(contents(m5)^2))), memmags(m5), tol=1e-6)
+[1] TRUE
+> 
