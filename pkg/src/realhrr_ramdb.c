@@ -17,10 +17,11 @@
 
 static void realhrr_ramdb_finalizer(SEXP ptr)
 {
-    if (!R_ExternalPtrAddr(ptr))
+    float *mem = (float*) R_ExternalPtrAddr(ptr);
+    if (!mem)
         return;
-    /* close the ramdb */
-    /* Free(ptr); */
+    /* close the ramdb and free the storage */
+    Free(mem);
     R_ClearExternalPtr(ptr);
 }
 
