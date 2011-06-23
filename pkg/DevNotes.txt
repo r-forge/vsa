@@ -7,3 +7,21 @@ implement realhrr_ramdb8: 8bit approximation for HRR ramdb memory
 * => scale = 3/127 * sqrt(1/n)
 * xm is 8bit signed int, x is double version
 * x = 3/127 * xm * sqrt(1/n)
+
+
+=========== Unsigned char storage ===========
+
+> f1 <- cfunction(signature(x="integer", y="integer"), "signed char sc; unsigned char *uc = (unsigned char *)&sc; sc=x[0]; y[0] = *uc;", convention=".C")
+> f1(-128L, 1L)$y
+[1] 128
+> f1(-127L, 1L)$y
+[1] 129
+> f1(-1L, 1L)$y
+[1] 255
+> f1(1L, 1L)$y
+[1] 1
+> f1(0L, 1L)$y
+[1] 0
+> f1(127L, 1L)$y
+[1] 127
+>
