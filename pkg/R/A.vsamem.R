@@ -262,6 +262,9 @@ memsize <- function(mem) UseMethod("memsize")
 memsize.vsalist <- function(mem) return(length(mem))
 memsize.vsamat <- function(mem) return(ncol(mem))
 
+memmags <- function(mem) UseMethod("memmags")
+memmags.default <- function(mem) attr(mem, "mag")
+
 delmem <- function(mem, items) {
     # 'items' is a vector of the names of items to delete from the memory
     stop("not yet implemented")
