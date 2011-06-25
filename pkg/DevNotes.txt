@@ -25,3 +25,12 @@ implement realhrr_ramdb8: 8bit approximation for HRR ramdb memory
 > f1(127L, 1L)$y
 [1] 127
 >
+
+============== implement single bit-approximation =====================
+* get code working for an independent version, ramdb1, then move
+  code into ramdb8 to work together
+* try adding bit matches several ways:
+  * 32 bit >> loop
+  * 4 x 8 bit >> loops
+  * 4 x 8 bit lookups
+
