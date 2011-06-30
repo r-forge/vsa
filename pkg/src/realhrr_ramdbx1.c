@@ -37,11 +37,11 @@ static void realhrr_ramdbx1_finalizer(SEXP ptr)
 
 SEXP realhrr_ramdbx1_create(SEXP n, SEXP m, SEXP tag, SEXP prot) {
     unsigned char *p = 0;
+    int intbytes = sizeof(int);
     SEXP ptr;
-
-    ** need fo make k div 32
-	
-    p = Calloc(INTEGER(n)[0] * ceiling(INTEGER(m)[0] / 8.0), unsigned char);
+    /* need to round up nk so that nk/8 bytes is a round number of 'int's and 'n' bits fits in nk/8 bytes */
+    int nk = ceil(INTEGER(n)[0] / (intbytes * 8.0)) * intbytes * 8;
+    p = Calloc(nk * ceil(INTEGER(m)[0] / 8.0), unsigned char);
     ptr = R_MakeExternalPtr(p, install("ramdbptr"), R_NilValue);
     PROTECT(ptr);
     R_RegisterCFinalizerEx(ptr, realhrr_ramdbx1_finalizer, TRUE);
@@ -50,14 +50,17 @@ SEXP realhrr_ramdbx1_create(SEXP n, SEXP m, SEXP tag, SEXP prot) {
 }
 
 SEXP realhrr_ramdbx1_get(SEXP ptr, SEXP veclen, SEXP memsize, SEXP vecidx) {
+    int intbytes = sizeof(int);
     SEXP ans;
     unsigned int *mem = (unsigned int*) R_ExternalPtrAddr(ptr);
     double *x;
     float scale;
     int n = INTEGER(veclen)[0];
+    int nk = ceil(INTEGER(veclen)[0] / (intbytes * 8.0)) * intbytes * 8;
     int m = INTEGER(memsize)[0];
     int k = INTEGER(vecidx)[0] - 1; /* vecidx is 1-based, k is 0-based */
-    int i;
+    int i, j;
+    unsigned int z, t;
     /* want scale st n * scale^2 = 1 */
     scale = 1.0 / sqrt((double) n);
     if (k >= m)
@@ -66,39 +69,54 @@ SEXP realhrr_ramdbx1_get(SEXP ptr, SEXP veclen, SEXP memsize, SEXP vecidx) {
         error("vecidx must be +ve (is 1-based)");
     ans = allocVector(REALSXP, n);
     x = REAL(ans);
-    mem += k * n / 32;
-    for (i = 0; i<n; i++)
-        *(x++) = *(mem++) * scale;
+    mem += k * nk / (8 * intbytes);
+    z = *mem;
+    j = 0;
+    for (i = 0; i<n; i++) {
+        *(x++) = ((z & 0x1) > 0) ? scale : -scale;
+	if (++j > (8 * intbytes)) {
+	    j = 0;
+	    z = *(++mem);
+	} else {
+	    z >> 1;
+	}
+    }
     return ans;
 }
 
 SEXP realhrr_ramdbx1_set(SEXP ptr, SEXP veclen, SEXP memsize, SEXP vecidx, SEXP vec) {
-    signed char *mem = (signed char*) R_ExternalPtrAddr(ptr);
+    int intbytes = sizeof(int);
+    unsigned int *mem = (unsigned int*) R_ExternalPtrAddr(ptr);
     double *x, s2 = 0;
-    float xi, iscale;
     int n = INTEGER(veclen)[0];
+    int nk = ceil(INTEGER(veclen)[0] / (intbytes * 8.0)) * intbytes * 8;
     int m = INTEGER(memsize)[0];
     int k = INTEGER(vecidx)[0] - 1; /* vecidx is 1-based, k is 0-based */
-    int i;
+    int i, j;
+    unsigned int z;
     SEXP ans;
-    iscale = (127.0 * sqrt((double) n)) / 3.0;
     if (k >= m)
         error("vecidx too large");
     if (k < 0)
         error("vecidx must be +ve (is 1-based)");
     x = REAL(vec);
     /* vecidx is 0-based */
-    mem += k * n;
+    mem += k * nk / (8 * intbytes);
+    z = *mem;
+    j = 0;
+    z = 0;
     for (i = 0; i<n; i++) {
-	xi = (*x) * iscale;
-	xi = xi > 127 ? 127 : (xi < -127 ? -127 : xi);
-	xi = round(xi);
-        s2 += xi * xi;
-        *(mem++) = (signed char) xi;
-	x++;
+	z << 1;
+	if (*x > 0)
+	    z |= 0x1;
+	if (++j > (8 * intbytes) || i == n-1) {
+	    j = 0;
+	    *(mem++) = z;
+	    z = 0;
+	}
     }
     ans = allocVector(REALSXP, 1);
-    REAL(ans)[0] = sqrt(s2) / iscale;
+    REAL(ans)[0] = 1.0;
     return ans;
 }
 
@@ -110,6 +128,7 @@ SEXP realhrr_ramdbx1_set(SEXP ptr, SEXP veclen, SEXP memsize, SEXP vecidx, SEXP 
  * which locations in the memory to use.
  */
 SEXP realhrr_ramdbx1_dot(SEXP ptr, SEXP veclen, SEXP memsize, SEXP active, SEXP vec, SEXP param, SEXP mlookptr) {
+    int intbytes = sizeof(int);
     signed char *mem = (signed char*) R_ExternalPtrAddr(ptr);
     signed char *y;		/* pointer into mem */
     signed char *x, *x1;	/* typecast version of vec */
@@ -117,6 +136,7 @@ SEXP realhrr_ramdbx1_dot(SEXP ptr, SEXP veclen, SEXP memsize, SEXP active, SEXP 
     double *x0, *a;		/* pointers to vec and ans */
     float scale, iscale;
     int n = INTEGER(veclen)[0];
+    int nk = ceil(INTEGER(veclen)[0] / (intbytes * 8.0)) * intbytes * 8;
     int m = INTEGER(memsize)[0];
     int k, i, j, ma, have_active;
     int *mlookup = 0;
@@ -237,12 +257,14 @@ SEXP realhrr_ramdbx1_dot(SEXP ptr, SEXP veclen, SEXP memsize, SEXP active, SEXP 
  * Return a vector of magnitudes.
  */
 SEXP realhrr_ramdbx1_set_rand(SEXP ptr, SEXP veclen, SEXP memsize, SEXP active, SEXP cnormp, SEXP scalep) {
+    int intbytes = sizeof(int);
     signed char *x, *mem = (signed char*) R_ExternalPtrAddr(ptr);
     SEXP ans;
     double rscale, s2;
     float iscale, riscale, scale;
     float *temp = 0, r, rs;
     int n = INTEGER(veclen)[0];
+    int nk = ceil(INTEGER(veclen)[0] / (intbytes * 8.0)) * intbytes * 8;
     int m = INTEGER(memsize)[0];
     int cnorm, k, i, j, active_len, have_active;
     iscale = (127.0 * sqrt((double) n)) / 3.0;
