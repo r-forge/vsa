@@ -1,0 +1,48 @@
+> source.pkg(dll='b')
+> options(vsalen=4, vsatype="realhrr", vsacnorm=FALSE, vsaopnorm=FALSE)
+> set.seed(1)
+> m5 <- vsamem(memsize=5, type="db", datatype="bit")
+> m5
+RAM DB (bit) containing 5 realhrr[4]: NA, NA, NA ...
+> a <- newVec()
+> b <- newVec()
+> c <- newVec()
+> d <- newVec()
+> e <- newVec()
+> m5 <- vsamem(a, b, memsize=5, type="db", datatype="bit")
+> m5
+RAM DB (bit) containing 5 realhrr[4]: a, b, NA ...
+> contents(m5)
+        a    b <NA> <NA> <NA>
+[1,] -0.5  0.5 -0.5 -0.5 -0.5
+[2,]  0.5 -0.5 -0.5 -0.5 -0.5
+[3,] -0.5  0.5 -0.5 -0.5 -0.5
+[4,]  0.5  0.5 -0.5 -0.5 -0.5
+> getmemraw(m5, 1)
+[1] 0a 00 00 00
+> m5 <- vsamem(a, b, c, d, e, memsize=5, type="db", datatype="bit")
+> sign(contents(m5))
+      a  b  c  d  e
+[1,] -1  1  1 -1 -1
+[2,]  1 -1 -1 -1  1
+[3,] -1  1  1  1  1
+[4,]  1  1  1 -1  1
+> all(sign(contents(m5)) == sign(cbind(a,b,c,d,e)))
+[1] TRUE
+>
+> dotmem(m5, a)
+   a    b    c    d    e
+ 1.0 -0.5 -0.5 -0.5  0.5
+> dotmem(m5, b)
+   a    b    c    d    e
+-0.5  1.0  1.0  0.0  0.0
+> dotmem(m5, c)
+   a    b    c    d    e
+-0.5  1.0  1.0  0.0  0.0
+> dotmem(m5, d)
+   a    b    c    d    e
+-0.5  0.0  0.0  1.0  0.0
+> dotmem(m5, e)
+  a   b   c   d   e
+0.5 0.0 0.0 0.0 1.0
+>
