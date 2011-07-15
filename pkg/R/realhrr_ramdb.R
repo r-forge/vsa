@@ -157,6 +157,7 @@ getmem.realhrr_ramdb <- function(mem, i) {
 }
 
 getmemraw.realhrr_ramdb <- function(mem, i) {
+    example <- attr(mem, "example")
     if (is.character(i) && length(i)==1) {
         j <- match(i, memlabels(mem))
         if (is.na(j))
@@ -174,6 +175,7 @@ getmemraw.realhrr_ramdb <- function(mem, i) {
 }
 
 setmemraw.realhrr_ramdb <- function(mem, i, x) {
+    example <- attr(mem, "example")
     if (is.character(i) && length(i)==1) {
         j <- match(i, memlabels(mem))
         if (is.na(j))
@@ -217,7 +219,8 @@ setmem.realhrr_ramdb <- function(mem, i, x, label=NULL) {
 
 dotmem.realhrr_ramdb <- function(mem, x, ..., cos=FALSE, debug=FALSE) {
     params <- NULL
-    conformable(attr(mem, "example"), list(x))
+    example <- attr(mem, "example")
+    conformable(example, list(x))
     ii <- which(!is.na(mem$labels))
     memsize <- ii[length(ii)]
     if (debug)

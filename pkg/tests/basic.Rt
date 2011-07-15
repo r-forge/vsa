@@ -1,10 +1,9 @@
 > library(vsa)
+> options(vsalen=1024, vsatype="realhrr", vsacnorm=TRUE, vsaopnorm=FALSE)
 > set.seed(1)
-> a <- newVec()
-> a
+> (a <- newVec())
 realhrr[1024] mag=1 cos(.,I)=-0.01890816
-> b <- newVec()
-> b
+> (b <- newVec())
 realhrr[1024] mag=1 cos(.,I)=0.008826179
 > dot(a, b)
 simval: 0.02538086

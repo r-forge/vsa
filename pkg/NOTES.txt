@@ -1,17 +1,5 @@
-Can define a %.% operator for dot-product -- consider giving
-the result a class that cannot be used in hrr arithmetic (to
-detect problems with precedence in parsing).
-
-vector store:
-
-list of vectors, with names (as names of list)
-
-enforce that all are same type and length
-
-create
-add
-remove
-compare
+alias rb='R CMD build pkg ; R CMD INSTALL -l build vsa_0.3.tar.gz'
+alias rc='R CMD check --no-tests --no-examples --no-manual vsa_0.3.tar.gz'
 
 library(vsa)
 a <- randVec()

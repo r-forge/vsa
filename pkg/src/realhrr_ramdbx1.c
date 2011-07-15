@@ -56,7 +56,7 @@ SEXP realhrr_ramdbx1_get(SEXP ptr, SEXP veclen, SEXP memsize, SEXP vecidx) {
     int i, j;
     unsigned int z;
     /* want scale st n * scale^2 = 1 */
-    float scale = 1.0 / sqrt((double) n);
+    double scale = 1.0 / sqrt((double) n);
     if (k >= m)
         error("vecidx too large");
     if (k < 0)
@@ -68,7 +68,7 @@ SEXP realhrr_ramdbx1_get(SEXP ptr, SEXP veclen, SEXP memsize, SEXP vecidx) {
     j = 0;
     for (i = 0; i<n; i++) {
         *(x++) = (z & 0x1) ? scale : -scale;
-        if (++j > intbits) {
+        if (++j >= intbits) {
             j = 0;
             z = *(++mem);
         } else {
@@ -193,7 +193,7 @@ SEXP realhrr_ramdbx1_dot(SEXP ptr, SEXP veclen, SEXP memsize, SEXP active, SEXP 
     double *x0, *a;              /* pointers to vec and ans */
     int n = INTEGER(veclen)[0];
     /* want scale st n * scale^2 = 1 */
-    float scale = 1.0 / sqrt((double) n);
+    double scale = 1.0 / sqrt((double) n);
     int nup = ceil(INTEGER(veclen)[0] / (intbytes * 8.0)) * intbits;
     int nints = nup / intbits;
     int m = INTEGER(memsize)[0];
@@ -276,7 +276,8 @@ SEXP realhrr_ramdbx1_dot(SEXP ptr, SEXP veclen, SEXP memsize, SEXP active, SEXP 
             unsigned char *yu = (unsigned char*) y;
             */
         }
-        /* aa was the sum of differences, convert to -1/1 sum is aa*-1 + (n-aa)*1 = n - 2aa */
+        /* aa was the sum of differences, including padding.
+         * Convert to -1/1 sum is aa*-1 + (n-aa)*1 = n - 2aa */
         *a = (n - 2 * aa) * scale * scale;
         if (debug)
             *a = aa;
@@ -301,7 +302,7 @@ SEXP realhrr_ramdbx1_set_rand(SEXP ptr, SEXP veclen, SEXP memsize, SEXP active, 
     unsigned char *x, *mem = (unsigned char*) R_ExternalPtrAddr(ptr);
     SEXP ans;
     double rscale, s2;
-    float iscale, riscale, scale;
+    double iscale, riscale, scale;
     float *temp = 0, r, rs;
     int n = INTEGER(veclen)[0];
     int nup = ceil(INTEGER(veclen)[0] / (intbytes * 8.0)) * intbits;

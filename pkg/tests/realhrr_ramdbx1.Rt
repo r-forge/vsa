@@ -1,4 +1,5 @@
-> source.pkg(dll='b')
+> options(error=function() NULL)
+> invisible(if (interactive()) source.pkg('pkg', dll='b'))
 > options(vsalen=4, vsatype="realhrr", vsacnorm=FALSE, vsaopnorm=FALSE)
 > set.seed(1)
 > m5 <- vsamem(memsize=5, type="db", datatype="bit")
@@ -45,4 +46,43 @@ RAM DB (bit) containing 5 realhrr[4]: a, b, NA ...
 > dotmem(m5, e)
   a   b   c   d   e
 0.5 0.0 0.0 0.0 1.0
->
+> ms <- sign(cbind(a,b,c,d,e))
+> crossprod(ms) / nrow(ms)
+     a    b    c    d   e
+a  1.0 -0.5 -0.5 -0.5 0.5
+b -0.5  1.0  1.0  0.0 0.0
+c -0.5  1.0  1.0  0.0 0.0
+d -0.5  0.0  0.0  1.0 0.0
+e  0.5  0.0  0.0  0.0 1.0
+> all.equal(abind(along=0, lapply(list(a=a,b=b,c=c,d=d,e=e), function(x) dotmem(m5, x))), crossprod(ms) / nrow(ms))
+[1] TRUE
+> 
+> # Same thing again with big vectors 1017 bits long
+> set.seed(1)
+> options(vsalen=1017, vsatype="realhrr", vsacnorm=FALSE, vsaopnorm=FALSE)
+> a <- newVec()
+> b <- newVec()
+> c <- newVec()
+> d <- newVec()
+> e <- newVec()
+> m5 <- vsamem(a, b, c, d, e, memsize=5, type="db", datatype="bit")
+> head(contents(m5))
+> head(getmemraw(m5, 1))
+> all(sign(contents(m5)) == sign(cbind(a,b,c,d,e)))
+[1] TRUE
+> dotmem(m5, a)
+> dotmem(m5, b)
+> dotmem(m5, c)
+> dotmem(m5, d)
+> dotmem(m5, e)
+> ms <- sign(cbind(a,b,c,d,e))
+> crossprod(ms) / nrow(ms)
+     a    b    c    d   e
+a  1.0 -0.5 -0.5 -0.5 0.5
+b -0.5  1.0  1.0  0.0 0.0
+c -0.5  1.0  1.0  0.0 0.0
+d -0.5  0.0  0.0  1.0 0.0
+e  0.5  0.0  0.0  0.0 1.0
+> all.equal(abind(along=0, lapply(list(a=a,b=b,c=c,d=d,e=e), function(x) dotmem(m5, x))), crossprod(ms) / nrow(ms))
+[1] TRUE
+> 

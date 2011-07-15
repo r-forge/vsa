@@ -62,3 +62,4 @@ S3method(vsascale, drep)
 S3method(scalar, default)
 S3method(scalar, simval)
 
+useDynLib(vsa)

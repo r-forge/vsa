@@ -1,3 +1,4 @@
+> options(error=function() NULL)
 > options(vsalen=4, vsatype="realhrr", vsacnorm=FALSE, vsaopnorm=FALSE)
 > set.seed(1)
 > m5 <- vsamem(memsize=5, type="db", datatype="int8")
