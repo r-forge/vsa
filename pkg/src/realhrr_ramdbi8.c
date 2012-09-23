@@ -87,12 +87,12 @@ SEXP realhrr_ramdbi8_set(SEXP ptr, SEXP veclen, SEXP memsize, SEXP vecidx, SEXP 
     /* vecidx is 0-based */
     mem += k * n;
     for (i = 0; i<n; i++) {
-        xi = (*x) * iscale;
-        xi = xi > 127 ? 127 : (xi < -127 ? -127 : xi);
-        xi = round(xi);
+	xi = (*x) * iscale;
+	xi = xi > 127 ? 127 : (xi < -127 ? -127 : xi);
+	xi = round(xi);
         s2 += xi * xi;
         *(mem++) = (signed char) xi;
-        x++;
+	x++;
     }
     ans = allocVector(REALSXP, 1);
     REAL(ans)[0] = sqrt(s2) / iscale;
@@ -108,11 +108,10 @@ SEXP realhrr_ramdbi8_set(SEXP ptr, SEXP veclen, SEXP memsize, SEXP vecidx, SEXP 
  */
 SEXP realhrr_ramdbi8_dot(SEXP ptr, SEXP veclen, SEXP memsize, SEXP active, SEXP vec, SEXP param, SEXP mlookptr) {
     signed char *mem = (signed char*) R_ExternalPtrAddr(ptr);
-    signed char *y;             /* pointer into mem */
-    signed char *x, *x1;        /* typecast version of vec */
-    int aa;                     /* for accumulating dotprod */
-    double *x0, *a;             /* pointers to vec and ans */
-    double xr;
+    signed char *y;		/* pointer into mem */
+    signed char *x, *x1;	/* typecast version of vec */
+    int aa;			/* for accumulating dotprod */
+    double *x0, *a;		/* pointers to vec and ans */
     float scale, iscale;
     int n = INTEGER(veclen)[0];
     int m = INTEGER(memsize)[0];
@@ -121,18 +120,18 @@ SEXP realhrr_ramdbi8_dot(SEXP ptr, SEXP veclen, SEXP memsize, SEXP active, SEXP 
     int debug = 0;
     int unroll = 1;
     if (length(param)>=2)
-        debug = REAL(param)[1];
+	debug = REAL(param)[1];
     if (length(param)>=3)
-        unroll = REAL(param)[2];
+	unroll = REAL(param)[2];
     SEXP ans;
     scale = 3.0 / (127.0 * sqrt((double) n));
     iscale = (127.0 * sqrt((double) n)) / 3.0;
     if (!isNull(mlookptr)) {
-        mlookup = (int *) R_ExternalPtrAddr(mlookptr);
-        if (*mlookup == 256 * 256)
-            mlookup += 2;
-        else
-            mlookup = 0;
+	mlookup = (int *) R_ExternalPtrAddr(mlookptr);
+	if (*mlookup == 256 * 256)
+	    mlookup += 2;
+	else
+	    mlookup = 0;
     }
     if (isNull(active)) {
         ans = allocVector(REALSXP, m);
@@ -147,14 +146,12 @@ SEXP realhrr_ramdbi8_dot(SEXP ptr, SEXP veclen, SEXP memsize, SEXP active, SEXP 
     x = x1;
     x0 = REAL(vec);
     for (i = 0; i < n; i++) {
-        xr = round(iscale * (*(x0++)));
-        if (xr > 127)
-            *x = 127;
-        else if (xr < -127)
-            *x = -127;
-        else
-            *x = xr;
-        x++;
+        *x = round(iscale * (*(x0++)));
+	if (*x > 127)
+	    *x = 127;
+	else if (*x < -127)
+	    *x = -127;
+	x++;
     }
     ma = length(ans);
     for (j = 0; j < ma; j++) {
@@ -171,55 +168,55 @@ SEXP realhrr_ramdbi8_dot(SEXP ptr, SEXP veclen, SEXP memsize, SEXP active, SEXP 
         y = mem + k * n;
         x = x1;
         a = REAL(ans)+k;
-        aa = 0;
-        if (mlookup == 0) {
-            if (n % 4 == 0 && unroll) {
-                /* unroll loops in steps of 4 */
-                for (i = 0; i < n; i += 4) {
-                    aa += x[0] * y[0] + x[1] * y[1] + x[2] * y[2] + x[3] * y[3];
-                    x += 4;
-                    y += 4;
-                }
-            } else if (1) {
-                for (i = 0; i < n; i++)
-                    aa += (*(x++)) * (*(y++));
-            } else {
-                /* unroll loops in steps of 8 */
-                for (i = 0; i < n; i += 8) {
-                    aa += (  x[0] * y[0] + x[1] * y[1] + x[2] * y[2] + x[3] * y[3]
-                             + x[4] * y[4] + x[5] * y[5] + x[6] * y[6] + x[7] * y[7]);
-                    x += 8;
-                    y += 8;
-                }
-            }
-        } else {
-            /* use lookup table for signed character multiplication */
-            unsigned char *xu = (unsigned char*) x;
-            unsigned char *yu = (unsigned char*) y;
-            if (debug>0) {
-                if (debug==1) {
-                    /* lookup table value for first element */
-                    aa = mlookup[(*(xu)) << 8 | (*(yu))];
-                } else if (debug==2) {
-                    /* offset into lookup table value for first element */
-                    aa = (*(xu)) << 8 | (*(yu));
-                } else {
-                    aa = 77;
-                }
-            } else if (n % 4 == 0 && unroll) {
-                /* unroll loops in steps of 4 */
-                /* need to use xu and yu instead of x and y */
-                for (i = 0; i < n; i += 4) {
-                    aa += (mlookup[xu[0] << 8 | yu[0]] + mlookup[xu[1] << 8 | yu[1]]
-                           + mlookup[xu[2] << 8 | yu[2]] + mlookup[xu[3] << 8 | yu[3]]);
-                    xu += 4;
-                    yu += 4;
-                }
-            } else {
-                for (i = 0; i < n; i++)
-                    aa += mlookup[(*(xu++)) << 8 | (*(yu++))];
-            }
-        }
+	aa = 0;
+	if (mlookup == 0) {
+	    if (n % 4 == 0 && unroll) {
+		/* unroll loops in steps of 4 */
+		for (i = 0; i < n; i += 4) {
+		    aa += x[0] * y[0] + x[1] * y[1] + x[2] * y[2] + x[3] * y[3];
+		    x += 4;
+		    y += 4;
+		}
+	    } else if (1) {
+		for (i = 0; i < n; i++)
+		    aa += (*(x++)) * (*(y++));
+	    } else {
+		/* unroll loops in steps of 8 */
+		for (i = 0; i < n; i += 8) {
+		    aa += (  x[0] * y[0] + x[1] * y[1] + x[2] * y[2] + x[3] * y[3]
+			     + x[4] * y[4] + x[5] * y[5] + x[6] * y[6] + x[7] * y[7]);
+		    x += 8;
+		    y += 8;
+		}
+	    }
+	} else {
+	    /* use lookup table for signed character multiplication */
+	    unsigned char *xu = (unsigned char*) x;
+	    unsigned char *yu = (unsigned char*) y;
+	    if (debug>0) {
+		if (debug==1) {
+		    /* lookup table value for first element */
+		    aa = mlookup[(*(xu)) << 8 | (*(yu))];
+		} else if (debug==2) {
+		    /* offset into lookup table value for first element */
+		    aa = (*(xu)) << 8 | (*(yu));
+		} else {
+		    aa = 77;
+		}
+	    } else if (n % 4 == 0 && unroll) {
+		/* unroll loops in steps of 4 */
+		/* need to use xu and yu instead of x and y */
+		for (i = 0; i < n; i += 4) {
+		    aa += (mlookup[xu[0] << 8 | yu[0]] + mlookup[xu[1] << 8 | yu[1]]
+			   + mlookup[xu[2] << 8 | yu[2]] + mlookup[xu[3] << 8 | yu[3]]);
+		    xu += 4;
+		    yu += 4;
+		}
+	    } else {
+		for (i = 0; i < n; i++)
+		    aa += mlookup[(*(xu++)) << 8 | (*(yu++))];
+	    }
+	}
         *a = aa * scale * scale;
     }
     UNPROTECT(1);
@@ -264,7 +261,7 @@ SEXP realhrr_ramdbi8_set_rand(SEXP ptr, SEXP veclen, SEXP memsize, SEXP active, 
     }
     riscale = rscale * iscale;
     if (cnorm)
-        temp = (float *) R_alloc(n, sizeof(float));
+	temp = (float *) R_alloc(n, sizeof(float));
     GetRNGstate();
     for (j = 0; j < active_len; j++) {
         if (have_active) {
@@ -278,37 +275,37 @@ SEXP realhrr_ramdbi8_set_rand(SEXP ptr, SEXP veclen, SEXP memsize, SEXP active, 
         }
         /* k is 0-based */
         if (cnorm) {
-            x = mem + k * n;
+	    x = mem + k * n;
             s2 = 0;
-            /* create a float version (unrounded) and accumulate sum of squared-rounded elements */
+	    /* create a float version (unrounded) and accumulate sum of squared-rounded elements */
             for (i = 0; i < n; i++) {
                 *temp = norm_rand() * riscale;
-                r = round(*temp);
-                r = r > 127 ? 127 : (r < -127 ? -127 : r);
+		r = round(*temp);
+		r = r > 127 ? 127 : (r < -127 ? -127 : r);
                 s2 += r * r;
                 temp++;
             }
-            /* apply the scaling to the float version, then round */
+	    /* apply the scaling to the float version, then round */
             s2 = sqrt(s2) * scale;
-            x = mem + k * n;
-            rs = (s2 > 0 ? 1/s2 : 1.0);
-            s2 = 0;
-            for (i = 0; i < n; i++) {
-                r = round(*temp * rs);
-                r = r > 127 ? 127 : (r < -127 ? -127 : r);
-                *x = r;
-                s2 += r * r;
-                x++;
-                temp++;
+	    x = mem + k * n;
+	    rs = (s2 > 0 ? 1/s2 : 1.0);
+	    s2 = 0;
+	    for (i = 0; i < n; i++) {
+		r = round(*temp * rs);
+		r = r > 127 ? 127 : (r < -127 ? -127 : r);
+		*x = r;
+		s2 += r * r;
+		x++;
+		temp++;
             }
-            /* not guaranteed to get exactly normalized */
-            REAL(ans)[k] = sqrt(s2) * scale;
+	    /* not guaranteed to get exactly normalized */
+	    REAL(ans)[k] = sqrt(s2) * scale;
         } else {
-            x = mem + k * n;
+	    x = mem + k * n;
             s2 = 0;
             for (i = 0; i < n; i++) {
-                r = round(norm_rand() * riscale);
-                r = r > 127 ? 127 : (r < -127 ? -127 : r);
+		r = round(norm_rand() * riscale);
+		r = r > 127 ? 127 : (r < -127 ? -127 : r);
                 *(x) = r;
                 s2 += r * r;
                 x++;

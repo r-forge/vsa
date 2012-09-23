@@ -143,7 +143,7 @@ SEXP realhrr_ramdb_dot(SEXP ptr, SEXP veclen, SEXP memsize, SEXP active, SEXP ve
 SEXP realhrr_ramdb_set_rand(SEXP ptr, SEXP veclen, SEXP memsize, SEXP active, SEXP cnormp, SEXP scalep) {
     float *x, *mem = (float*) R_ExternalPtrAddr(ptr);
     SEXP ans;
-    double scale, s2, rs;
+    double scale, s2;
     int n = INTEGER(veclen)[0];
     int m = INTEGER(memsize)[0];
     int cnorm, k, i, j, active_len, have_active;
@@ -175,7 +175,7 @@ SEXP realhrr_ramdb_set_rand(SEXP ptr, SEXP veclen, SEXP memsize, SEXP active, SE
         }
         /* k is 0-based */
         if (cnorm) {
-            x = mem + k * n;
+	    x = mem + k * n;
             s2 = 0;
             for (i = 0; i < n; i++) {
                 *x = norm_rand() * scale;
@@ -185,9 +185,8 @@ SEXP realhrr_ramdb_set_rand(SEXP ptr, SEXP veclen, SEXP memsize, SEXP active, SE
             s2 = sqrt(s2);
             if (s2 > 0) {
                 x = mem + k * n;
-                rs = 1.0/s2;
                 for (i = 0; i < n; i++) {
-                    *x = (*x) * rs;
+                    *x = (*x)/s2;
                     x++;
                 }
                 REAL(ans)[k] = 1;
@@ -195,7 +194,7 @@ SEXP realhrr_ramdb_set_rand(SEXP ptr, SEXP veclen, SEXP memsize, SEXP active, SE
                 REAL(ans)[k] = 0;
             }
         } else {
-            x = mem + k * n;
+	    x = mem + k * n;
             s2 = 0;
             for (i = 0; i < n; i++) {
                 *(x) = norm_rand() * scale;

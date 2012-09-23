@@ -38,7 +38,7 @@ newVec.default <- function(what=c("rand", "I", "1", "0", "NA"),
     if (is.null(len))
         stop("no len specified -- must set options(vsalen=...)")
     what <- match.arg(what)
-    newVec(structure(what, class=vsatype), len, elts, opnorm, cnorm)
+    newVec(structure(what, class=vsatype), len, elts, cnorm, opnorm)
 }
 
 # Simval

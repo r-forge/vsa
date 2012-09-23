@@ -78,7 +78,7 @@ contents.realhrr_ramdb <- function(mem, ii=seq(len=memsize(mem))) {
 
 create.realhrr_ramdb <- function(memsize, example=newVec(), fill=FALSE, labels=NULL,
                                  datatype=c("float", "double", "int16", "int8", "int4", "int2",
-                                 "xint16", "xint8", "xint4", "xint2", "xint1", "bit"),
+                                 "oint16", "oint8", "oint4", "oint2", "oint1"),
                                  lookup=FALSE) {
     if (is.null(lookup)) lookup <- FALSE
     if (!inherits(example, "vsa"))
@@ -87,15 +87,12 @@ create.realhrr_ramdb <- function(memsize, example=newVec(), fill=FALSE, labels=N
         stop("labels must be character vector with length = memsize")
     if (is.null(datatype)) datatype <- "float"
     datatype <- match.arg(datatype)
-    dt <- switch(datatype, float="f", double="d", int16="i16", int8="i8", int4="i4", int2="i2",
-                 xint16="x16", xint8="x8", xint4="x4", xint2="x2", bit=, xint1="x1")
+    dt <- switch(datatype, "float"="f", "double"="d", "int16"="i16", "int8"="i8", "int4"="i4", "int2"="i2",
+                                 "oint16"="o16", "oint8"="o8", "oint4"="o4", "oint2"="o2", "oint1"="o1")
     creator <- paste("realhrr_ramdb", dt, "_create", sep="")
     rander <- paste("realhrr_ramdb", dt, "_set_rand", sep="")
     mem <- list(ramdb=.Call(creator, length(example), as.integer(memsize), NULL, NULL, PACKAGE="vsa"))
     mem$datatype <- datatype
-    # If the _getraw function doesn't exist getmemraw() won't work, but otherwise no matter
-    mem$rawgetter <- paste("realhrr_ramdb", dt, "_getraw", sep="")
-    mem$rawsetter <- paste("realhrr_ramdb", dt, "_setraw", sep="")
     mem$getter <- paste("realhrr_ramdb", dt, "_get", sep="")
     mem$setter <- paste("realhrr_ramdb", dt, "_set", sep="")
     mem$dotter <- paste("realhrr_ramdb", dt, "_dot", sep="")
@@ -156,42 +153,6 @@ getmem.realhrr_ramdb <- function(mem, i) {
     return(example)
 }
 
-getmemraw.realhrr_ramdb <- function(mem, i) {
-    example <- attr(mem, "example")
-    if (is.character(i) && length(i)==1) {
-        j <- match(i, memlabels(mem))
-        if (is.na(j))
-            stop("label '", i, "' not found")
-    } else if (is.numeric(i) && length(i)==1) {
-        j <- i
-        if (i<1 || i>memsize(mem))
-            stop("index ", i, " out of range (mem has ", memsize(mem), " elements)")
-    } else {
-        stop("i must be single character or numeric")
-    }
-    memsize <- mem$memsize
-    vec <- .Call(mem$rawgetter, mem$ramdb, length(example), as.integer(memsize), as.integer(j), PACKAGE="vsa")
-    return(vec)
-}
-
-setmemraw.realhrr_ramdb <- function(mem, i, x) {
-    example <- attr(mem, "example")
-    if (is.character(i) && length(i)==1) {
-        j <- match(i, memlabels(mem))
-        if (is.na(j))
-            stop("label '", i, "' not found")
-    } else if (is.numeric(i) && length(i)==1) {
-        j <- i
-        if (i<1 || i>memsize(mem))
-            stop("index ", i, " out of range (mem has ", memsize(mem), " elements)")
-    } else {
-        stop("i must be single character or numeric")
-    }
-    memsize <- mem$memsize
-    vec <- .Call(mem$rawsetter, mem$ramdb, length(example), as.integer(memsize), as.integer(j), as.raw(x), PACKAGE="vsa")
-    return(vec)
-}
-
 setmem.realhrr_ramdb <- function(mem, i, x, label=NULL) {
     example <- attr(mem, "example")
     conformable(example, list(x))
@@ -219,8 +180,7 @@ setmem.realhrr_ramdb <- function(mem, i, x, label=NULL) {
 
 dotmem.realhrr_ramdb <- function(mem, x, ..., cos=FALSE, debug=FALSE) {
     params <- NULL
-    example <- attr(mem, "example")
-    conformable(example, list(x))
+    conformable(attr(mem, "example"), list(x))
     ii <- which(!is.na(mem$labels))
     memsize <- ii[length(ii)]
     if (debug)
