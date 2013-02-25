@@ -34,7 +34,7 @@ addmem.vsadb <- function(..., mem=NULL, memsize=NULL, fill=FALSE, labels=NULL, c
             length(vsamat.labels) <- memsize
         mem <- create.realhrr_ramdb(memsize, example=example, fill=fill, labels=vsamat.labels, datatype=datatype, lookup=lookup)
         n <- as.integer(mem$veclen)
-        for (i in as.integer(seq(len=vsamat.memsize))) {
+        for (i in as.integer(seq(length.out=vsamat.memsize))) {
             mag <- .Call(mem$setter, mem$ramdb, n, memsize, i, vsamat[,i], PACKAGE="vsa")
             .Call("realvec_set", mem$mag, i, mag, PACKAGE="vsa")
         }
@@ -67,7 +67,7 @@ addmem.vsadb <- function(..., mem=NULL, memsize=NULL, fill=FALSE, labels=NULL, c
     return(mem)
 }
 
-contents.realhrr_ramdb <- function(mem, ii=seq(len=memsize(mem))) {
+contents.realhrr_ramdb <- function(mem, ii=seq(length.out=memsize(mem))) {
     veclen <- as.integer(mem$veclen)
     memsize <- as.integer(memsize(mem))
     x <- sapply(as.integer(ii), function(i)
@@ -110,7 +110,7 @@ create.realhrr_ramdb <- function(memsize, example=newVec(), fill=FALSE, labels=N
     if (lookup && datatype=="int8") {
         ii <- c(seq.int(0L, 127L), seq(-128L, -1L))
         mem$mlookup <- .Call("intvec_create", 256L * 256L, PACKAGE="vsa")
-        .Call("intvec_set", mem$mlookup, seq.int(len=256^2), as.integer(outer(ii, ii, "*")), PACKAGE="vsa")
+        .Call("intvec_set", mem$mlookup, seq.int(length.out=256^2), as.integer(outer(ii, ii, "*")), PACKAGE="vsa")
     }
     class(mem) <- c("realhrr_ramdb", "vsamem")
     mem
@@ -129,7 +129,7 @@ print.realhrr_ramdb <- function(x, ...) {
     n <- x$memsize
     cat("RAM DB (", x$datatype, ") containing ", n, " ", vsaclass[1], "[", len, "]: ",
         if (is.null(m)) "(no labels)\n"
-        else paste(paste(m[seq(1, len=min(length(m), 3))], collapse=", "),
+        else paste(paste(m[seq(1, length.out=min(length(m), 3))], collapse=", "),
                    if (length(m)>3) " ...", "\n", sep=""), sep="")
     invisible(x)
 }

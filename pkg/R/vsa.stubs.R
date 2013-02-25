@@ -60,7 +60,7 @@ vsaprod.drep <- function(e1, e2, method=c("fft", "outer"))
     stop(need.drep.method("vsaprod", class(e1)[1]))
     if (is.null(method) || match.arg(method)=="fft") {
         # fast method using FFT's
-        res <- Re(fft(fft(unclass(e1)) * fft(unclass(e2)), inv=T)) / length(e1)
+        res <- Re(fft(fft(unclass(e1)) * fft(unclass(e2)), inverse=TRUE)) / length(e1)
     } else {
         # very slow method!
         x <- outer(e1, e2)
@@ -83,7 +83,7 @@ vsapower.drep <- function(e1, e2) {
         return(e1)
     } else {
         res <- fft(unclass(e1))
-        e1[] <- Re(fft(res ^ e2, inv=T) / length(e1))
+        e1[] <- Re(fft(res ^ e2, inverse=TRUE) / length(e1))
         return(e1)
     }
 }

@@ -39,7 +39,7 @@ vsaprod.realhrr <- function(e1, e2, method=c("fft", "outer"))
         stop("e1 and e2 must have the same length")
     if (is.null(method) || match.arg(method)=="fft") {
         # fast method using FFT's
-        res <- Re(fft(fft(unclass(e1)) * fft(unclass(e2)), inv=T)) / length(e1)
+        res <- Re(fft(fft(unclass(e1)) * fft(unclass(e2)), inverse=TRUE)) / length(e1)
     } else {
         # very slow method!
         x <- outer(e1, e2)
@@ -61,7 +61,7 @@ vsapower.realhrr <- function(e1, e2) {
         return(e1)
     } else {
         res <- fft(unclass(e1))
-        e1[] <- Re(fft(res ^ e2, inv=T) / length(e1))
+        e1[] <- Re(fft(res ^ e2, inverse=TRUE) / length(e1))
         return(e1)
     }
 }
@@ -196,7 +196,7 @@ dotmem.vsamat.compute.realhrr <-
     if (cos) {
         memmag <- attr(mem, "mag")
         if (length(memmag) != ncol(mem))
-            memmag <- sqrt(colSums(unclass(mem)^2, na.rm=T))
+            memmag <- sqrt(colSums(unclass(mem)^2, na.rm=TRUE))
         if (any(i <- memmag==0))
             memmag[i] <- 1
         res <- res / (xmag * memmag)

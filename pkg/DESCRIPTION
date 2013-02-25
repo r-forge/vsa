@@ -10,5 +10,5 @@ Description: Provides a framework for implementing VSAs (Vector Symbolic
   Architectures) for distributed representation of compositional
   hierarchical structures.  Includes implementations of HRR (Holographic
   Reduced Representation)
-License: GPL version 2 or newer
+License: GPL (>=2)
 URL: http://www.r-project.org, http://www.d-reps.org
