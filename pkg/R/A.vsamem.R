@@ -171,6 +171,9 @@ addmem.default <- function(..., labels=NULL, call=match.call(expand.dots=FALSE))
     return(items)
 }
 
+getmemraw <- function(mem, i) UseMethod("getmemraw")
+setmemraw <- function(mem, i, x) UseMethod("setmemraw")
+
 getmem <- function(mem, i) UseMethod("getmem")
 
 getmem.vsamat <- function(mem, i) {

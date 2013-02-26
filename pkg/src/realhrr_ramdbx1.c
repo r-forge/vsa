@@ -14,15 +14,9 @@
 /*
  * realhrr_ramdb provides a RAM-based vector memory that stores data in 1-bit integers with no zeros
  * (i.e., no zero value is used)
- * implement realhrr_ramdb8: 1bit approximation for HRR ramdb memory
- * all ordinary dreps stored as regular doubles
- * use 255 signed numbers with range +/-3 sd.
- * sd = sqrt(1/n)
- * scale * 127 = 3*sqrt(1/n)
- * => scale = 3/127 * sqrt(1/n)
- * xm is 8bit signed int, x is double version
- * x = 3/127 * xm * sqrt(1/n)
- * realhrr_ramdbx1_get/_set interface with floats on 3/127 * sqrt(1/n) scale
+ * Implement realhrr_ramdb8: 1-bit approximation for HRR ramdb memory.
+ * Bits are stored in int's (either 4 or 8 byte, depending on compiler)
+ * Order is from LSB first.
  */
 
 static void realhrr_ramdbx1_finalizer(SEXP ptr)
@@ -39,9 +33,9 @@ SEXP realhrr_ramdbx1_create(SEXP n, SEXP m, SEXP tag, SEXP prot) {
     unsigned char *p = 0;
     int intbytes = sizeof(int);
     SEXP ptr;
-    /* need to round up nk so that nk/8 bytes is a round number of 'int's and 'n' bits fits in nk/8 bytes */
-    int nk = ceil(INTEGER(n)[0] / (intbytes * 8.0)) * intbytes * 8;
-    p = Calloc(nk * ceil(INTEGER(m)[0] / 8.0), unsigned char);
+    /* need to round up nup so that nup/8 bytes is a round number of 'int's and 'n' bits fits in nup/8 bytes */
+    int nup = ceil(INTEGER(n)[0] / (intbytes * 8.0)) * intbytes * 8;
+    p = Calloc(nup * ceil(INTEGER(m)[0] / 8.0), unsigned char);
     ptr = R_MakeExternalPtr(p, install("ramdbptr"), R_NilValue);
     PROTECT(ptr);
     R_RegisterCFinalizerEx(ptr, realhrr_ramdbx1_finalizer, TRUE);
@@ -51,45 +45,100 @@ SEXP realhrr_ramdbx1_create(SEXP n, SEXP m, SEXP tag, SEXP prot) {
 
 SEXP realhrr_ramdbx1_get(SEXP ptr, SEXP veclen, SEXP memsize, SEXP vecidx) {
     int intbytes = sizeof(int);
+    int intbits = sizeof(int) * 8;
     SEXP ans;
     unsigned int *mem = (unsigned int*) R_ExternalPtrAddr(ptr);
     double *x;
-    float scale;
     int n = INTEGER(veclen)[0];
-    int nk = ceil(INTEGER(veclen)[0] / (intbytes * 8.0)) * intbytes * 8;
+    int nup = ceil(INTEGER(veclen)[0] / (intbytes * 8.0)) * intbits;
     int m = INTEGER(memsize)[0];
     int k = INTEGER(vecidx)[0] - 1; /* vecidx is 1-based, k is 0-based */
     int i, j;
-    unsigned int z, t;
+    unsigned int z;
     /* want scale st n * scale^2 = 1 */
-    scale = 1.0 / sqrt((double) n);
+    double scale = 1.0 / sqrt((double) n);
     if (k >= m)
         error("vecidx too large");
     if (k < 0)
         error("vecidx must be +ve (is 1-based)");
     ans = allocVector(REALSXP, n);
     x = REAL(ans);
-    mem += k * nk / (8 * intbytes);
+    mem += k * nup / intbits;
     z = *mem;
     j = 0;
     for (i = 0; i<n; i++) {
-        *(x++) = ((z & 0x1) > 0) ? scale : -scale;
-	if (++j > (8 * intbytes)) {
-	    j = 0;
-	    z = *(++mem);
-	} else {
-	    z >> 1;
-	}
+        *(x++) = (z & 0x1) ? scale : -scale;
+        if (++j >= intbits) {
+            j = 0;
+            z = *(++mem);
+        } else {
+            z >>= 1;
+        }
     }
+    return ans;
+}
+
+SEXP realhrr_ramdbx1_getraw(SEXP ptr, SEXP veclen, SEXP memsize, SEXP vecidx) {
+    int intbytes = sizeof(int);
+    int intbits = sizeof(int) * 8;
+    SEXP ans;
+    unsigned int *mem = (unsigned int*) R_ExternalPtrAddr(ptr);
+    unsigned char *memb;
+    unsigned char *x;
+    int nup = ceil(INTEGER(veclen)[0] / (intbytes * 8.0)) * intbits;
+    int m = INTEGER(memsize)[0];
+    int k = INTEGER(vecidx)[0] - 1; /* vecidx is 1-based, k is 0-based */
+    int i, nbytes;
+    if (k >= m)
+        error("vecidx too large");
+    if (k < 0)
+        error("vecidx must be +ve (is 1-based)");
+    nbytes = nup / 8;
+    ans = allocVector(RAWSXP, nbytes);
+    x = RAW(ans);
+    mem += k * nup / intbits;
+    memb = (unsigned char *) mem;
+    for (i = 0; i<nbytes; i++)
+        *(x++) = *(memb++);
+    return ans;
+}
+
+SEXP realhrr_ramdbx1_setraw(SEXP ptr, SEXP veclen, SEXP memsize, SEXP vecidx, SEXP vec) {
+    SEXP ans;
+    int intbytes = sizeof(int);
+    int intbits = sizeof(int) * 8;
+    unsigned int *mem = (unsigned int*) R_ExternalPtrAddr(ptr);
+    unsigned char *memb;
+    unsigned char *x;
+    int nup = ceil(INTEGER(veclen)[0] / (intbytes * 8.0)) * intbits;
+    int m = INTEGER(memsize)[0];
+    int k = INTEGER(vecidx)[0] - 1; /* vecidx is 1-based, k is 0-based */
+    int i, nbytes;
+    if (k >= m)
+        error("vecidx too large");
+    if (k < 0)
+        error("vecidx must be +ve (is 1-based)");
+    nbytes = nup / 8;
+    ans = allocVector(INTSXP, 1);
+    x = RAW(vec);
+    mem += k * nup / intbits;
+    memb = (unsigned char *) mem;
+    if (length(vec) < nbytes)
+        nbytes = length(vec);
+    for (i = 0; i<nbytes; i++)
+        *(memb++) = *(x++);
+    INTEGER(ans)[0] = nbytes;
     return ans;
 }
 
 SEXP realhrr_ramdbx1_set(SEXP ptr, SEXP veclen, SEXP memsize, SEXP vecidx, SEXP vec) {
     int intbytes = sizeof(int);
+    int intbits = sizeof(int) * 8;
     unsigned int *mem = (unsigned int*) R_ExternalPtrAddr(ptr);
-    double *x, s2 = 0;
+    unsigned int hibit = (0x1 << (intbits - 1));
+    double *x;
     int n = INTEGER(veclen)[0];
-    int nk = ceil(INTEGER(veclen)[0] / (intbytes * 8.0)) * intbytes * 8;
+    int nup = ceil(INTEGER(veclen)[0] / (intbytes * 8.0)) * intbits;
     int m = INTEGER(memsize)[0];
     int k = INTEGER(vecidx)[0] - 1; /* vecidx is 1-based, k is 0-based */
     int i, j;
@@ -101,19 +150,24 @@ SEXP realhrr_ramdbx1_set(SEXP ptr, SEXP veclen, SEXP memsize, SEXP vecidx, SEXP 
         error("vecidx must be +ve (is 1-based)");
     x = REAL(vec);
     /* vecidx is 0-based */
-    mem += k * nk / (8 * intbytes);
+    mem += k * nup / intbits;
     z = *mem;
     j = 0;
     z = 0;
     for (i = 0; i<n; i++) {
-	z << 1;
-	if (*x > 0)
-	    z |= 0x1;
-	if (++j > (8 * intbytes) || i == n-1) {
-	    j = 0;
-	    *(mem++) = z;
-	    z = 0;
-	}
+        if (*(x++) > 0)
+            z |= hibit;
+        j++;
+        if (i == n-1) {
+            z >>= (intbits - j);
+            *(mem++) = z;
+        } else if (j >= intbits) {
+            j = 0;
+            *(mem++) = z;
+            z = 0;
+        } else {
+            z >>= 1;
+        }
     }
     ans = allocVector(REALSXP, 1);
     REAL(ans)[0] = 1.0;
@@ -129,32 +183,35 @@ SEXP realhrr_ramdbx1_set(SEXP ptr, SEXP veclen, SEXP memsize, SEXP vecidx, SEXP 
  */
 SEXP realhrr_ramdbx1_dot(SEXP ptr, SEXP veclen, SEXP memsize, SEXP active, SEXP vec, SEXP param, SEXP mlookptr) {
     int intbytes = sizeof(int);
-    signed char *mem = (signed char*) R_ExternalPtrAddr(ptr);
-    signed char *y;		/* pointer into mem */
-    signed char *x, *x1;	/* typecast version of vec */
-    int aa;			/* for accumulating dotprod */
-    double *x0, *a;		/* pointers to vec and ans */
-    float scale, iscale;
+    int intbits = sizeof(int) * 8;
+    unsigned int *mem = (unsigned int *) R_ExternalPtrAddr(ptr);
+    unsigned int *y;             /* pointer into mem */
+    unsigned int *x, *x1;        /* typecast version of vec */
+    unsigned int z;
+    unsigned int hibit = (0x1 << (intbits - 1));
+    int aa;                      /* for accumulating dotprod */
+    double *x0, *a;              /* pointers to vec and ans */
     int n = INTEGER(veclen)[0];
-    int nk = ceil(INTEGER(veclen)[0] / (intbytes * 8.0)) * intbytes * 8;
+    /* want scale st n * scale^2 = 1 */
+    double scale = 1.0 / sqrt((double) n);
+    int nup = ceil(INTEGER(veclen)[0] / (intbytes * 8.0)) * intbits;
+    int nints = nup / intbits;
     int m = INTEGER(memsize)[0];
-    int k, i, j, ma, have_active;
+    int k, i, j, b, ma, have_active;
     int *mlookup = 0;
     int debug = 0;
     int unroll = 1;
     if (length(param)>=2)
-	debug = REAL(param)[1];
+        debug = REAL(param)[1];
     if (length(param)>=3)
-	unroll = REAL(param)[2];
+        unroll = REAL(param)[2];
     SEXP ans;
-    scale = 3.0 / (127.0 * sqrt((double) n));
-    iscale = (127.0 * sqrt((double) n)) / 3.0;
     if (!isNull(mlookptr)) {
-	mlookup = (int *) R_ExternalPtrAddr(mlookptr);
-	if (*mlookup == 256 * 256)
-	    mlookup += 2;
-	else
-	    mlookup = 0;
+        mlookup = (int *) R_ExternalPtrAddr(mlookptr);
+        if (*mlookup == 256 * 256)
+            mlookup += 2;
+        else
+            mlookup = 0;
     }
     if (isNull(active)) {
         ans = allocVector(REALSXP, m);
@@ -164,18 +221,29 @@ SEXP realhrr_ramdbx1_dot(SEXP ptr, SEXP veclen, SEXP memsize, SEXP active, SEXP 
         have_active = 1;
     }
     PROTECT(ans);
-    /* convert double vec to signed chars in x1 */
-    x1 = (signed char *) R_alloc(n, sizeof(signed char));
+    /* convert double vec to unsigned ints in x1 */
+    x1 = (unsigned int *) R_alloc(nup / intbits, sizeof(int));
     x = x1;
     x0 = REAL(vec);
-    for (i = 0; i < n; i++) {
-        *x = round(iscale * (*(x0++)));
-	if (*x > 127)
-	    *x = 127;
-	else if (*x < -127)
-	    *x = -127;
-	x++;
+    j = 0;
+    z = 0;
+    for (i = 0; i<n; i++) {
+        if (*(x0++) > 0)
+            z |= hibit;
+        j++;
+        if (i == n-1) {
+            z >>= (intbits - j);
+            *(x++) = z;
+        } else if (j >= intbits) {
+            j = 0;
+            *(x++) = z;
+            z = 0;
+        } else {
+            z >>= 1;
+        }
     }
+
+    /* iterate over each vector we want to compare to */
     ma = length(ans);
     for (j = 0; j < ma; j++) {
         if (have_active) {
@@ -188,59 +256,31 @@ SEXP realhrr_ramdbx1_dot(SEXP ptr, SEXP veclen, SEXP memsize, SEXP active, SEXP 
             k = j;
         }
         /* k is 0-based */
-        y = mem + k * n;
+        y = mem + k * nup / intbits;
         x = x1;
         a = REAL(ans)+k;
-	aa = 0;
-	if (mlookup == 0) {
-	    if (n % 4 == 0 && unroll) {
-		/* unroll loops in steps of 4 */
-		for (i = 0; i < n; i += 4) {
-		    aa += x[0] * y[0] + x[1] * y[1] + x[2] * y[2] + x[3] * y[3];
-		    x += 4;
-		    y += 4;
-		}
-	    } else if (1) {
-		for (i = 0; i < n; i++)
-		    aa += (*(x++)) * (*(y++));
-	    } else {
-		/* unroll loops in steps of 8 */
-		for (i = 0; i < n; i += 8) {
-		    aa += (  x[0] * y[0] + x[1] * y[1] + x[2] * y[2] + x[3] * y[3]
-			     + x[4] * y[4] + x[5] * y[5] + x[6] * y[6] + x[7] * y[7]);
-		    x += 8;
-		    y += 8;
-		}
-	    }
-	} else {
-	    /* use lookup table for signed character multiplication */
-	    unsigned char *xu = (unsigned char*) x;
-	    unsigned char *yu = (unsigned char*) y;
-	    if (debug>0) {
-		if (debug==1) {
-		    /* lookup table value for first element */
-		    aa = mlookup[(*(xu)) << 8 | (*(yu))];
-		} else if (debug==2) {
-		    /* offset into lookup table value for first element */
-		    aa = (*(xu)) << 8 | (*(yu));
-		} else {
-		    aa = 77;
-		}
-	    } else if (n % 4 == 0 && unroll) {
-		/* unroll loops in steps of 4 */
-		/* need to use xu and yu instead of x and y */
-		for (i = 0; i < n; i += 4) {
-		    aa += (mlookup[xu[0] << 8 | yu[0]] + mlookup[xu[1] << 8 | yu[1]]
-			   + mlookup[xu[2] << 8 | yu[2]] + mlookup[xu[3] << 8 | yu[3]]);
-		    xu += 4;
-		    yu += 4;
-		}
-	    } else {
-		for (i = 0; i < n; i++)
-		    aa += mlookup[(*(xu++)) << 8 | (*(yu++))];
-	    }
-	}
-        *a = aa * scale * scale;
+        aa = 0;
+        /* count matching bits */
+        if (mlookup == 0) {
+            for (i = 0; i < nints; i++) {
+                z = (*(x++)) ^ (*(y++));
+                for (b = 0; b < intbits; b++) {
+                    aa += z & 1;
+                    z >>= 1;
+                }
+            }
+        } else {
+            /* use lookup table for the xor sum */
+            /*
+            unsigned char *xu = (unsigned char*) x;
+            unsigned char *yu = (unsigned char*) y;
+            */
+        }
+        /* aa was the sum of differences, including padding.
+         * Convert to -1/1 sum is aa*-1 + (n-aa)*1 = n - 2aa */
+        *a = (n - 2 * aa) * scale * scale;
+        if (debug)
+            *a = aa;
     }
     UNPROTECT(1);
     return ans;
@@ -258,15 +298,17 @@ SEXP realhrr_ramdbx1_dot(SEXP ptr, SEXP veclen, SEXP memsize, SEXP active, SEXP 
  */
 SEXP realhrr_ramdbx1_set_rand(SEXP ptr, SEXP veclen, SEXP memsize, SEXP active, SEXP cnormp, SEXP scalep) {
     int intbytes = sizeof(int);
-    signed char *x, *mem = (signed char*) R_ExternalPtrAddr(ptr);
+    int intbits = sizeof(int) * 8;
+    unsigned char *x, *mem = (unsigned char*) R_ExternalPtrAddr(ptr);
     SEXP ans;
     double rscale, s2;
-    float iscale, riscale, scale;
+    double iscale, riscale, scale;
     float *temp = 0, r, rs;
     int n = INTEGER(veclen)[0];
-    int nk = ceil(INTEGER(veclen)[0] / (intbytes * 8.0)) * intbytes * 8;
+    int nup = ceil(INTEGER(veclen)[0] / (intbytes * 8.0)) * intbits;
     int m = INTEGER(memsize)[0];
     int cnorm, k, i, j, active_len, have_active;
+    i = nup;
     iscale = (127.0 * sqrt((double) n)) / 3.0;
     scale = 3.0 / (127.0 * sqrt((double) n));
     if (isNull(active)) {
@@ -286,7 +328,7 @@ SEXP realhrr_ramdbx1_set_rand(SEXP ptr, SEXP veclen, SEXP memsize, SEXP active, 
     }
     riscale = rscale * iscale;
     if (cnorm)
-	temp = (float *) R_alloc(n, sizeof(float));
+        temp = (float *) R_alloc(n, sizeof(float));
     GetRNGstate();
     for (j = 0; j < active_len; j++) {
         if (have_active) {
@@ -300,37 +342,37 @@ SEXP realhrr_ramdbx1_set_rand(SEXP ptr, SEXP veclen, SEXP memsize, SEXP active, 
         }
         /* k is 0-based */
         if (cnorm) {
-	    x = mem + k * n;
+            x = mem + k * n;
             s2 = 0;
-	    /* create a float version (unrounded) and accumulate sum of squared-rounded elements */
+            /* create a float version (unrounded) and accumulate sum of squared-rounded elements */
             for (i = 0; i < n; i++) {
                 *temp = norm_rand() * riscale;
-		r = round(*temp);
-		r = r > 127 ? 127 : (r < -127 ? -127 : r);
+                r = round(*temp);
+                r = r > 127 ? 127 : (r < -127 ? -127 : r);
                 s2 += r * r;
                 temp++;
             }
-	    /* apply the scaling to the float version, then round */
+            /* apply the scaling to the float version, then round */
             s2 = sqrt(s2) * scale;
-	    x = mem + k * n;
-	    rs = (s2 > 0 ? 1/s2 : 1.0);
-	    s2 = 0;
-	    for (i = 0; i < n; i++) {
-		r = round(*temp * rs);
-		r = r > 127 ? 127 : (r < -127 ? -127 : r);
-		*x = r;
-		s2 += r * r;
-		x++;
-		temp++;
-            }
-	    /* not guaranteed to get exactly normalized */
-	    REAL(ans)[k] = sqrt(s2) * scale;
-        } else {
-	    x = mem + k * n;
+            x = mem + k * n;
+            rs = (s2 > 0 ? 1/s2 : 1.0);
             s2 = 0;
             for (i = 0; i < n; i++) {
-		r = round(norm_rand() * riscale);
-		r = r > 127 ? 127 : (r < -127 ? -127 : r);
+                r = round(*temp * rs);
+                r = r > 127 ? 127 : (r < -127 ? -127 : r);
+                *x = r;
+                s2 += r * r;
+                x++;
+                temp++;
+            }
+            /* not guaranteed to get exactly normalized */
+            REAL(ans)[k] = sqrt(s2) * scale;
+        } else {
+            x = mem + k * n;
+            s2 = 0;
+            for (i = 0; i < n; i++) {
+                r = round(norm_rand() * riscale);
+                r = r > 127 ? 127 : (r < -127 ? -127 : r);
                 *(x) = r;
                 s2 += r * r;
                 x++;
