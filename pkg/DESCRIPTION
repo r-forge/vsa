@@ -4,7 +4,7 @@ Date: 2011-05-21
 Title: Vector Symbol Architectures for AI & CogSci
 Author: Tony Plate <tplate@acm.org>
 Maintainer: Tony Plate <tplate@acm.org>
-Depends: R (>= 1.8.0)
+Depends: R (>= 1.8.0), abind
 Suggests: scriptests
 Description: Provides a framework for implementing VSAs (Vector Symbolic
   Architectures) for distributed representation of compositional

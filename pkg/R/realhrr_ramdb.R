@@ -67,7 +67,7 @@ addmem.vsadb <- function(..., mem=NULL, memsize=NULL, fill=FALSE, labels=NULL, c
     return(mem)
 }
 
-contents.realhrr_ramdb <- function(mem, ii=seq(length.out=memsize(mem))) {
+contents.realhrr_ramdb <- function(mem, ii=seq(length.out=memsize(mem)), ...) {
     veclen <- as.integer(mem$veclen)
     memsize <- as.integer(memsize(mem))
     x <- sapply(as.integer(ii), function(i)
@@ -78,7 +78,7 @@ contents.realhrr_ramdb <- function(mem, ii=seq(length.out=memsize(mem))) {
 
 create.realhrr_ramdb <- function(memsize, example=newVec(), fill=FALSE, labels=NULL,
                                  datatype=c("float", "double", "int16", "int8", "int4", "int2",
-                                 "oint16", "oint8", "oint4", "oint2", "oint1"),
+                                 "oint16", "oint8", "oint4", "oint2", "oint1", "bit"),
                                  lookup=FALSE) {
     if (is.null(lookup)) lookup <- FALSE
     if (!inherits(example, "vsa"))

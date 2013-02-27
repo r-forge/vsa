@@ -1,30 +1,33 @@
+useDynLib(vsa)
 # Generics that have methods for subclasses of vsa
 export(newVec, vsaprod, vsapower, appinv, dot, equiv, cosine, norm, mag, add, addnorm, vsascale, conformable, simval, scalar)
 # Functions for vsa objects (don't need specific methods for subclsses)
 export("%.%", "%==%", "%cos%", elts)
 # Functions for working with 'vsamem' objects
-export(vsamem, addmem, getmem, delmem, dotmem, cosmem, cleanup, bestmatch, memsize, memlabels)
+export(vsamem, addmem, getmem, delmem, cosmem, cleanup, bestmatch, memsize, memlabels)
+export(contents, setmem, memmags, dotmem, dotmem.vsamat.compute)
 
 S3method(addmem, vsamat)
 S3method(addmem, default)
 S3method(addmem, vsadb)
 
 S3method(cosmem, default)
-S3method(dotmem, vsalist)
+
 S3method(cleanup, default)
+
 S3method(bestmatch, default)
 
 S3method(getmem, vsalist)
 S3method(getmem, vsamat)
+S3method(getmem, realhrr_ramdb)
 
 S3method(memsize, vsalist)
-S3method(memlabels, vsalist)
-S3method(memsize, vsamat)
-S3method(memlabels, vsamat)
 
-S3method(print, vsa)
-S3method(print, vsalist)
-S3method(print, vsamat)
+S3method(memlabels, vsalist)
+
+S3method(memsize, vsamat)
+
+S3method(memlabels, vsamat)
 
 S3method(print, vsa)
 S3method(print, vsalist)
@@ -62,3 +65,20 @@ S3method(vsascale, drep)
 S3method(scalar, default)
 S3method(scalar, simval)
 
+S3method(contents, realhrr_ramdb)
+S3method(contents, vsamat)
+
+S3method(setmem, vsamat)
+S3method(setmem, vsalist)
+S3method(setmem, realhrr_ramdb)
+
+S3method(memmags, default)
+S3method(memmags, realhrr_ramdb)
+
+S3method(dotmem, vsalist)
+S3method(dotmem, vsamat)
+S3method(dotmem, realhrr_ramdb)
+
+S3method(dotmem.vsamat.compute, default)
+S3method(dotmem.vsamat.compute, ihrr32)
+S3method(dotmem.vsamat.compute, realhrr)
