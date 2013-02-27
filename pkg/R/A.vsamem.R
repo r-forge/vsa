@@ -301,15 +301,15 @@ dotmem.vsamat <- function(mem, x, ..., cos=FALSE) {
         return(numeric(0))
     if (is.null(example))
         stop("non-empty vsamat memory contains no example vector")
-    return(dotmem.vsamat.compute(x, mem, ..., cos=cos))
+    return(dotmem_vsamat_compute(x, mem, ..., cos=cos))
 }
 
-dotmem.vsamat.compute <- function(x, mem, ..., cos) UseMethod("dotmem.vsamat.compute")
+dotmem_vsamat_compute <- function(x, mem, ..., cos) UseMethod("dotmem_vsamat_compute")
 
 # The default will work, but a more efficent version can be supplied that
 # dispatches off the vsa subclass (i.e., the type of the vsa vector).
 # The method can safely assume the columns of mem conform with x.
-dotmem.vsamat.compute.default <- function(x, mem, cos, ...) {
+dotmem_vsamat_compute.default <- function(x, mem, cos, ...) {
     res <- numeric(memsize(mem))
     names(res) <- colnames(mem)
     xmag <- mag(x)

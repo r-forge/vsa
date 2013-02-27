@@ -5,7 +5,7 @@ export(newVec, vsaprod, vsapower, appinv, dot, equiv, cosine, norm, mag, add, ad
 export("%.%", "%==%", "%cos%", elts)
 # Functions for working with 'vsamem' objects
 export(vsamem, addmem, getmem, delmem, cosmem, cleanup, bestmatch, memsize, memlabels)
-export(contents, setmem, memmags, dotmem, dotmem.vsamat.compute)
+export(contents, setmem, memmags, dotmem, dotmem_vsamat_compute, getmemraw)
 
 S3method(addmem, vsamat)
 S3method(addmem, default)
@@ -21,6 +21,8 @@ S3method(getmem, vsalist)
 S3method(getmem, vsamat)
 S3method(getmem, realhrr_ramdb)
 
+S3method(getmemraw, realhrr_ramdb)
+
 S3method(memsize, vsalist)
 
 S3method(memlabels, vsalist)
@@ -32,6 +34,7 @@ S3method(memlabels, vsamat)
 S3method(print, vsa)
 S3method(print, vsalist)
 S3method(print, vsamat)
+S3method(print, realhrr_ramdb)
 S3method(print, simval)
 S3method(Ops, vsa)
 S3method(elts, vsa)
@@ -79,6 +82,6 @@ S3method(dotmem, vsalist)
 S3method(dotmem, vsamat)
 S3method(dotmem, realhrr_ramdb)
 
-S3method(dotmem.vsamat.compute, default)
-S3method(dotmem.vsamat.compute, ihrr32)
-S3method(dotmem.vsamat.compute, realhrr)
+S3method(dotmem_vsamat_compute, default)
+S3method(dotmem_vsamat_compute, ihrr32)
+S3method(dotmem_vsamat_compute, realhrr)

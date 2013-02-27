@@ -137,11 +137,11 @@ vsascale.realhrr <- function(e1, e2) {
 # This cumbersomely-named method-method will get called by
 # dotmem(mem, x), cosmem(mem, x), bestmatch(mem, x), cleanup(mem, x)
 # via a method call to dotmem.vsamat() which calls the generic
-# dotmem.vsamat.compute().
+# dotmem_vsamat_compute().
 # The default will work, but a more efficent version can be supplied that
 # dispatches off the vsa subclass (i.e., the type of the vsa vector).
 # The method can safely assume the columns of mem conform with x.
-dotmem.vsamat.compute.realhrr <-
+dotmem_vsamat_compute.realhrr <-
     function(x, mem, ..., cos=FALSE,
              method=c("fast", "R", "crossprod", "matprod", "dotmem", "dotmempp", "dotmempp1", "dotmemmp1", "dotmemmp2"),
              cores=FALSE, usenames=TRUE) {

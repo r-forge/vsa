@@ -156,7 +156,7 @@ vsascale.ihrr32 <- function(e1, e2) {
 # The default will work, but a more efficent version can be supplied that
 # dispatches off the vsa subclass (i.e., the type of the vsa vector).
 # The method can safely assume the columns of mem conform with x.
-dotmem.vsamat.compute.ihrr32 <- function(x, mem, ..., cos=FALSE, method=c("fast", "R"), usenames=TRUE) {
+dotmem_vsamat_compute.ihrr32 <- function(x, mem, ..., cos=FALSE, method=c("fast", "R"), usenames=TRUE) {
     method <- match.arg(method)
     if (!is(x, "vsa"))
         stop("x must be a vsa object")
