@@ -46,7 +46,7 @@ newVec.ihrr32 <- function(what=c("rand", "I", "1", "0", "NA"),
         stop("elts must be numeric vector")
     res <- structure(as.vector(elts), class=c("ihrr32", "vsa"))
     if (cnorm && what=="rand")
-        res <- norm(res)
+        res <- vnorm(res)
     res
 }
 
@@ -123,7 +123,7 @@ cosine.ihrr32 <- function(e1, e2, mag1=NULL, mag2=NULL) {
     structure(sum(e1 * e2)/(mag1 * mag2), class="simval")
 }
 
-norm.ihrr32 <- function(e1) {
+vnorm.ihrr32 <- function(e1) {
     return(e1 / sqrt(sum(unclass(e1)^2)))
 }
 

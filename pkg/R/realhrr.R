@@ -27,7 +27,7 @@ newVec.realhrr <- function(what=c("rand", "I", "1", "0", "NA"),
         stop("elts must be numeric vector")
     res <- structure(as.vector(elts), class=c("realhrr", "vsa"))
     if (cnorm && what=="rand")
-        res <- norm(res)
+        res <- vnorm(res)
     res
 }
 
@@ -104,7 +104,7 @@ cosine.realhrr <- function(e1, e2, mag1=NULL, mag2=NULL) {
     structure(sum(e1 * e2)/(mag1 * mag2), class="simval")
 }
 
-norm.realhrr <- function(e1) {
+vnorm.realhrr <- function(e1) {
     return(e1 / sqrt(sum(unclass(e1)^2)))
 }
 

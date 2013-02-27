@@ -7,7 +7,7 @@
 \alias{dot.realhrr}
 \alias{equiv.realhrr}
 \alias{cosine.realhrr}
-\alias{norm.realhrr}
+\alias{vnorm.realhrr}
 \alias{mag.realhrr}
 \alias{add.realhrr}
 \alias{vsascale.realhrr}
@@ -33,7 +33,7 @@ work in functional and operator form (e.g., \code{add(x, y)} and \code{x
 %\special{!e1}
 % \method{!}{vsa}(e1)
 \method{add}{realhrr}(e1, ...)
-\method{norm}{realhrr}(e1)
+\method{vnorm}{realhrr}(e1)
 \method{dot}{realhrr}(e1, e2)
 \method{equiv}{realhrr}(e1, e2, tol)
 \method{cosine}{realhrr}(e1, e2, mag1, mag2)
@@ -101,7 +101,7 @@ do, remove the \code{simval} class using the function \code{scalar}).
   \itemize{
   \item \code{mag} computes the magnitude of a vector (scalar value) as
   the L2 norm (\code{sum(e1^2)})
-  \item \code{norm} normalizes a vector so that its magnitude is 1 (vector value)
+  \item \code{vnorm} normalizes a vector so that its magnitude is 1 (vector value)
   \item \code{vsaprod} and its synonym \code{*} compute the circular
   (wrapped) convolution of two vectors (vector value)
   \item \code{appinv} and its synonym \code{!} computes an approximate
@@ -132,7 +132,7 @@ do, remove the \code{simval} class using the function \code{scalar}).
 }
 
 \value{
-  \code{vsaprod}, \code{appinv}, \code{add}, \code{norm}, \code{vsapower}, \code{vsascale} return a \code{vsa} object of the same class as their argument.
+  \code{vsaprod}, \code{appinv}, \code{add}, \code{vnorm}, \code{vsapower}, \code{vsascale} return a \code{vsa} object of the same class as their argument.
 
   \code{mag}, \code{dot} and \code{cosine} return a scalar value with class \code{simval}
 }
@@ -159,7 +159,7 @@ c <- newVec()
 d <- newVec()
 e <- newVec()
 f <- newVec()
-x <- norm(a * b + c * d + e * f)
+x <- vnorm(a * b + c * d + e * f)
 mem <- vsamem(a, b, c, d, e, f)
 cosmem(mem, a)
 dotmem(mem, x / b)

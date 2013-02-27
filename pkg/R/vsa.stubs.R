@@ -45,7 +45,7 @@ newVec.drep <- function(what=c("rand", "I", "1", "0", "NA"),
         stop("elts must be numeric vector")
     res <- structure(as.vector(elts), class=c("realhrr", "drep"))
     if (cnorm && what=="rand")
-        res <- norm(res)
+        res <- vnorm(res)
     res
 }
 
@@ -126,8 +126,8 @@ cosine.drep <- function(e1, e2, mag1=NULL, mag2=NULL) {
     structure(sum(e1 * e2)/sqrt(sum(e1^2)*sum(e2^2)), class="simval")
 }
 
-norm.drep <- function(e1) {
-    stop(need.drep.method("norm", class(e1)[1]))
+vnorm.drep <- function(e1) {
+    stop(need.drep.method("vnorm", class(e1)[1]))
     return(e1 / sqrt(sum(unclass(e1)^2)))
 }
 

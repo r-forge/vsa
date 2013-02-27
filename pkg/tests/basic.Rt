@@ -28,7 +28,7 @@ realhrr[1024] mag=1.407963 cos(.,I)=0.02596693
 > d <- newVec()
 > e <- newVec()
 > f <- newVec()
-> x <- norm(a * b + c * d + e * f)
+> x <- vnorm(a * b + c * d + e * f)
 > mem <- vsamem(a, b, c, d, e, f)
 > cosmem(mem, a)
           a           b           c           d           e           f

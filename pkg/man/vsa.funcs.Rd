@@ -10,7 +10,7 @@
 \alias{\%==\%}
 \alias{cosine}
 \alias{\%cos\%}
-\alias{norm}
+\alias{vnorm}
 \alias{mag}
 \alias{vsapower}
 \alias{vsascale}
@@ -34,7 +34,7 @@ appinv(e1)
 \special{!e1}
 % \method{!}{vsa}(e1)
 add(e1, ...)
-norm(e1)
+vnorm(e1)
 addnorm(...)
 dot(e1, e2)
 e1 \%.\% e2
@@ -78,7 +78,7 @@ the function \code{scalar}).
 
   \itemize{
   \item \code{mag} computes the magnitude of a vector (scalar value)
-  \item \code{norm} normalizes a vector so that its magnitude is 1 (vector value)
+  \item \code{vnorm} normalizes a vector so that its magnitude is 1 (vector value)
   \item \code{vsaprod} and its synonym \code{*} compute the vector product of two vectors (vector value)
   \item \code{appinv} and its synonym \code{!} computes an approximate inverse of a vector.  The expression \code{x / y} where \code{x} and \code{y} are vectors computes \code{x * appinv(y)}.  (vector value)
   \item \code{vsascale} and its synonym \code{*} multiple a vector by a scalar (vector value)
@@ -99,7 +99,7 @@ the function \code{scalar}).
 }
 
 \value{
-  \code{vsaprod}, \code{appinv}, \code{add}, \code{norm}, \code{vsapower}, \code{vsascale} return a \code{vsa} object of the same class as their argument.
+  \code{vsaprod}, \code{appinv}, \code{add}, \code{vnorm}, \code{vsapower}, \code{vsascale} return a \code{vsa} object of the same class as their argument.
 
   \code{mag}, \code{dot} and \code{cosine} return a scalar value with class \code{simval}
 }
@@ -126,7 +126,7 @@ c <- newVec()
 d <- newVec()
 e <- newVec()
 f <- newVec()
-x <- norm(a * b + c * d + e * f)
+x <- vnorm(a * b + c * d + e * f)
 mem <- vsamem(a, b, c, d, e, f)
 cosmem(mem, a)
 dotmem(mem, x / b)

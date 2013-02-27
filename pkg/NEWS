@@ -1,5 +1,6 @@
                 CHANGES in vsa version 0.3-0 (2011-05-22)
 ENHANCEMENTS
     o   Added tests using scriptests
+    o	Changed name of function norm() to vnorm() to not conflict with base::norm
     o	Added matrix-based memory (initial memory is list based)
     o	Started adding efficiency improvements

@@ -142,7 +142,7 @@ cosine <- function(e1, e2, mag1=NULL, mag2=NULL) UseMethod("cosine")
 
 "%cos%" <- function(e1, e2) cosine(e1, e2)
 
-norm <- function(e1) UseMethod("norm")
+vnorm <- function(e1) UseMethod("vnorm")
 
 mag <- function(e1, actual=NULL) UseMethod("mag")
 
@@ -283,4 +283,4 @@ function (e1, e2 = NULL)
     stop("should not reach here")
 }
 
-addnorm <- function(...) norm(add(...))
+addnorm <- function(...) vnorm(add(...))
